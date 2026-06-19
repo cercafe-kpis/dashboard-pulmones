@@ -330,7 +330,7 @@ async function doLogin(){
       cache:{cacheLocation:'sessionStorage'}
     });
     await msalApp.initialize();
-    const r=await msalApp.loginPopup({scopes:['User.Read','Sites.Read.All']});
+    const r=await msalApp.loginPopup({scopes:['User.Read','Sites.ReadWrite.All']});
     showApp(r.account);
     cargarDatos();
   }catch(e){showToast('Error: '+e.message,'err');}
@@ -338,10 +338,10 @@ async function doLogin(){
 
 async function getToken(){
   try{
-    const r=await msalApp.acquireTokenSilent({scopes:['Sites.Read.All'],account:msalApp.getAllAccounts()[0]});
+    const r=await msalApp.acquireTokenSilent({scopes:['Sites.ReadWrite.All'],account:msalApp.getAllAccounts()[0]});
     return r.accessToken;
   }catch{
-    const r=await msalApp.acquireTokenPopup({scopes:['Sites.Read.All']});
+    const r=await msalApp.acquireTokenPopup({scopes:['Sites.ReadWrite.All']});
     return r.accessToken;
   }
 }
