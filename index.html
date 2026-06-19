@@ -428,7 +428,8 @@ function dibujarBarras(){
     const y=PAD.t+cH-barH;
     ctx.fillStyle=colors[i];
     ctx.beginPath();
-    ctx.roundRect(x,y,barW,barH,4);
+    if(ctx.roundRect){ctx.roundRect(x,y,barW,barH,4);}
+    else{ctx.rect(x,y,barW,barH);}
     ctx.fill();
     // Etiqueta
     ctx.fillStyle='#6b6558';ctx.font='9px sans-serif';ctx.textAlign='center';
@@ -461,7 +462,7 @@ function dibujarDona(){
   const etiquetas=Object.keys(sevs);
   const valores=Object.values(sevs);
 
-  const cx=W*0.38, cy=H/2, r=Math.min(cx,cy)-20, ri=r*.55;
+  const cx=W*0.38, cy=H/2, r=Math.max(10,Math.min(cx,cy)-20), ri=Math.max(5,r*.55);
   let ang=-Math.PI/2;
 
   valores.forEach((v,i)=>{
