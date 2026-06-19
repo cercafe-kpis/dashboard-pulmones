@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Score Pulmonar — Análisis</title>
 <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
-<script src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Chart.js se carga dinámicamente -->
 <style>
 :root{
   --g:#7b1010;--gd:#5a0c0c;--gl:#f9eaea;--gm:#a01515;
@@ -323,8 +323,27 @@ let msalApp, spSiteId='', spListId='';
 let allData=[], filteredData=[];
 let charts={};
 
+function cargarChartJS(){
+  return new Promise((resolve,reject)=>{
+    if(typeof Chart!=='undefined'){resolve();return;}
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js';
+    s.onload=resolve;
+    s.onerror=()=>{
+      // Fallback a otro CDN
+      const s2=document.createElement('script');
+      s2.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+      s2.onload=resolve;
+      s2.onerror=reject;
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
+  });
+}
+
 async function doLogin(){
   try{
+    await cargarChartJS();
     msalApp=new msal.PublicClientApplication({
       auth:{clientId:CONFIG.CLIENT_ID,authority:`https://login.microsoftonline.com/${CONFIG.TENANT_ID}`,redirectUri:location.origin+location.pathname},
       cache:{cacheLocation:'sessionStorage'}
@@ -611,6 +630,8 @@ function showToast(msg,tipo){
   clearTimeout(t._t);
   t._t=setTimeout(()=>t.className='toast',3000);
 }
+  // Precargar Chart.js al abrir la página
+  cargarChartJS().catch(e=>console.warn('Chart.js no disponible:', e));
 </script>
 
 <!--
