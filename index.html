@@ -237,7 +237,7 @@ const CONFIG={
         <div class="table-wrap"><div class="table-scroll">
           <table><thead><tr>
             <th>Granja</th><th>Consecutivo</th><th>Orden</th><th>Fecha</th>
-            <th>IDN</th><th>Consolidación</th><th>Categoría</th>
+            <th>IDN lote</th><th>Consolidación cerdo</th><th>Categoría</th>
             <th>Pleuritis</th><th>GDP (kg)</th><th>Severidad</th>
           </tr></thead><tbody id="tbody-d"></tbody></table>
         </div></div>
@@ -390,10 +390,26 @@ function limpiarFiltros(){
   aplicarFiltros();
 }
 
+function calcIDN(data){
+  // IDN real = CT/TCE
+  // CT = suma de (categoria × 1) por cada cerdo
+  // TCE = total de cerdos inspeccionados en el lote
+  // Se calcula por lote (consecutivo) y se promedia entre lotes
+  const lotes={};
+  data.forEach(d=>{
+    const key=(d.granja_nombre||'')+'_'+(d.consecutivo||'');
+    if(!lotes[key])lotes[key]={ct:0,tce:0};
+    lotes[key].ct+=parseInt(d.categoria)||0;
+    lotes[key].tce++;  // TCE = total cerdos del lote
+  });
+  const idns=Object.values(lotes).map(l=>l.tce>0?l.ct/l.tce:0);
+  return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
+}
+
 function actualizarKPIs(){
   const n=filteredData.length||1;
-  const idn=filteredData.reduce((s,d)=>s+(parseFloat(d.indice_madec)||0),0)/n;
-  const neum=filteredData.filter(d=>parseFloat(d.indice_madec)>0).length;
+  const idn=calcIDN(filteredData);
+  const neum=filteredData.filter(d=>(parseInt(d.categoria)||0)>0).length;
   const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
   const pleur=filteredData.filter(d=>d.pleuritis_total).length;
   document.getElementById('k-idn').textContent=idn.toFixed(4);
@@ -591,12 +607,17 @@ function actualizarTablas(){
   const porG={};
   filteredData.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
-    if(!porG[g])porG[g]={lotes:new Set(),n:0,sumIdn:0,neum:0,pleur:0,sumGdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0}};
+    if(!porG[g])porG[g]={lotes:new Set(),lotes2:{},n:0,sumIdn:0,neum:0,pleur:0,sumGdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0}};
     const pg=porG[g];
     pg.lotes.add(d.consecutivo);pg.n++;
-    const idn=parseFloat(d.indice_madec)||0;
+    // Acumular CT/TCE por lote
+    if(!pg.lotes2[d.consecutivo])pg.lotes2[d.consecutivo]={ct:0,tce:0};
+    pg.lotes2[d.consecutivo].ct+=parseInt(d.categoria)||0;
+    pg.lotes2[d.consecutivo].tce++;
+    const idn=parseFloat(d.consolidacion_total)||0;
     pg.sumIdn+=idn;
-    if(idn>0)pg.neum++;
+    const cat=parseInt(d.categoria)||0;
+    if(cat>0)pg.neum++;
     if(d.pleuritis_total)pg.pleur++;
     pg.sumGdp+=parseFloat(d.perdida_gdp_kg)||0;
     if(idn<=.10)pg.sevs.Sin++;else if(idn<=.25)pg.sevs.Leve++;else if(idn<=.50)pg.sevs.Moderada++;else pg.sevs.Severa++;
@@ -637,7 +658,7 @@ function actualizarTablas(){
       <td class="td-num">${d.consecutivo||'—'}</td>
       <td class="td-num">${d.orden||'—'}</td>
       <td>${(d.fecha_inspeccion||'').split('T')[0]||'—'}</td>
-      <td class="td-num">${idn.toFixed(4)}</td>
+      <td class="td-num">—</td>
       <td class="td-num">${(parseFloat(d.consolidacion_total)||0).toFixed(1)}%</td>
       <td class="td-num">${d.categoria||0}</td>
       <td>${d.pleuritis_total?'<span style="color:var(--red);font-weight:500">Sí</span>':'No'}</td>
