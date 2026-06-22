@@ -105,6 +105,45 @@ tr:hover td{background:#faf9f6;}
 .sev-3{background:var(--redl);color:var(--red);}
 .no-data{text-align:center;padding:2.5rem;color:var(--hint);font-size:13px;}
 
+/* PDF MODAL */
+.pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;}
+.pdf-overlay.on{display:flex;}
+.pdf-modal{background:#fff;border-radius:var(--r);padding:1.5rem;max-width:520px;width:90%;max-height:90vh;overflow-y:auto;}
+.pdf-modal h2{font-size:16px;font-weight:500;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;}
+.pdf-modal .close{background:none;border:none;cursor:pointer;color:var(--hint);font-size:18px;line-height:1;}
+
+/* ESTILOS DE IMPRESIÓN */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area {
+    position: fixed; inset: 0;
+    background: white;
+    padding: 1.5cm 1.5cm 1.5cm 1.5cm;
+    font-family: -apple-system, sans-serif;
+    font-size: 11pt;
+    color: #1a1814;
+  }
+  .print-header { margin-bottom: 1rem; border-bottom: 2px solid #7b1010; padding-bottom: .75rem; }
+  .print-header h1 { font-size: 16pt; color: #7b1010; margin-bottom: 4px; }
+  .print-header p { font-size: 9pt; color: #6b6558; }
+  .print-kpis { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 1rem; }
+  .print-kpi { border: 1px solid #d4cfc4; border-radius: 6px; padding: 8px; text-align: center; }
+  .print-kpi .pk-lbl { font-size: 8pt; color: #6b6558; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .print-kpi .pk-val { font-size: 16pt; font-weight: 600; color: #7b1010; font-family: monospace; }
+  .print-section { font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #9e9589; margin: .75rem 0 .5rem; border-bottom: 1px solid #e8e3da; padding-bottom: 3px; }
+  .print-lesiones { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; margin-bottom: .75rem; }
+  .print-artefactos { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 1rem; }
+  .print-les { border: 1px solid #d4cfc4; border-radius: 4px; padding: 6px; text-align: center; }
+  .print-les .pl-lbl { font-size: 8pt; color: #6b6558; margin-bottom: 3px; }
+  .print-les .pl-val { font-size: 13pt; font-weight: 600; color: #185fa5; font-family: monospace; }
+  .print-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+  .print-chart-full { margin-bottom: 1rem; }
+  .print-chart canvas { max-width: 100%; }
+  .print-footer { margin-top: 1rem; border-top: 1px solid #d4cfc4; padding-top: .5rem; font-size: 8pt; color: #9e9589; display: flex; justify-content: space-between; }
+  @page { size: A4 landscape; margin: 1cm; }
+}
+
 .toast{position:fixed;bottom:2rem;right:2rem;padding:10px 18px;border-radius:var(--rs);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .22s;z-index:999;pointer-events:none;}
 .toast.on{opacity:1;transform:translateY(0);}
 .toast.ok{background:var(--g);color:#fff;}
@@ -150,8 +189,12 @@ const CONFIG={
       <div class="av" id="av">NM</div>
       <span class="uname" id="uname">—</span>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;">
+    <div style="display:flex;align-items:center;gap:10px;">
       <span class="last-upd" id="last-upd"></span>
+      <button onclick="exportarPDF()" style="height:30px;padding:0 14px;background:var(--g);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M2 10v2h10v-2M7 2v7M4.5 6.5L7 9l2.5-2.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Exportar PDF
+      </button>
       <button class="btn-out" onclick="doLogout()">Salir</button>
     </div>
   </div>
@@ -266,6 +309,33 @@ const CONFIG={
   </div>
 
   <footer><p>Desarrollado por <strong>Gestión Técnica Especializada</strong></p></footer>
+</div>
+
+<!-- ÁREA DE IMPRESIÓN -->
+<div id="print-area" style="display:none"></div>
+
+<!-- MODAL PREVISUALIZACIÓN -->
+<div class="pdf-overlay" id="pdf-overlay">
+  <div class="pdf-modal">
+    <h2>
+      Exportar informe PDF
+      <button class="close" onclick="cerrarPDF()">✕</button>
+    </h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6;">
+      El informe incluirá los KPIs, tarjetas de lesiones y gráficas con los filtros actualmente aplicados.
+      Se abrirá el diálogo de impresión del navegador — seleccione <strong>"Guardar como PDF"</strong>.
+    </p>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:var(--muted);">
+      <div style="margin-bottom:4px"><strong>Filtros aplicados:</strong></div>
+      <div id="pdf-filtros-desc">—</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="cerrarPDF()" style="height:38px;padding:0 16px;border:1px solid var(--border);border-radius:var(--rs);background:#fff;font-size:13px;cursor:pointer;color:var(--muted);">Cancelar</button>
+      <button onclick="imprimirPDF()" style="height:38px;padding:0 20px;border:none;border-radius:var(--rs);background:var(--g);color:#fff;font-size:13px;font-weight:500;cursor:pointer;">
+        🖨️ Imprimir / Guardar PDF
+      </button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -740,6 +810,110 @@ function showToast(msg,tipo){
 window.addEventListener('resize',()=>{
   if(filteredData.length)dibujarGraficas();
 });
+
+function exportarPDF(){
+  if(!filteredData.length){showToast('No hay datos para exportar','err');return;}
+  // Describir filtros activos
+  const partes=[];
+  const asoc=document.getElementById('f-asociado').value;
+  const granja=document.getElementById('f-granja').value;
+  const consec=document.getElementById('f-consec').value;
+  const desde=document.getElementById('f-desde').value;
+  const hasta=document.getElementById('f-hasta').value;
+  if(asoc)partes.push('Asociado: '+asoc);
+  if(granja)partes.push('Granja: '+(GRANJA_VISTA[granja.toUpperCase()]||granja));
+  if(consec)partes.push('Consecutivo: '+consec);
+  if(desde)partes.push('Desde: '+desde);
+  if(hasta)partes.push('Hasta: '+hasta);
+  document.getElementById('pdf-filtros-desc').textContent=partes.length?partes.join(' · '):'Sin filtros — todos los datos';
+  document.getElementById('pdf-overlay').classList.add('on');
+}
+
+function cerrarPDF(){
+  document.getElementById('pdf-overlay').classList.remove('on');
+}
+
+function imprimirPDF(){
+  cerrarPDF();
+
+  // Capturar canvas como imágenes base64
+  const imgGranjas = document.getElementById('ch-granjas').toDataURL('image/png');
+  const imgSev     = document.getElementById('ch-sev').toDataURL('image/png');
+  const imgLinea   = document.getElementById('ch-linea').toDataURL('image/png');
+
+  // Obtener valores de KPIs
+  const kpis=[
+    {lbl:'IDN (CT/TCE)', val:document.getElementById('k-idn').textContent},
+    {lbl:'% Consolidación', val:document.getElementById('k-consol').textContent},
+    {lbl:'Frec. Neumonía', val:document.getElementById('k-neum').textContent},
+    {lbl:'Pérdidas GDP', val:document.getElementById('k-gdp').textContent},
+    {lbl:'Frec. Pleuritis', val:document.getElementById('k-pleur').textContent},
+  ];
+  const lesiones=[
+    {lbl:'Neumonía intersticial', val:document.getElementById('k-nint').textContent},
+    {lbl:'Absceso pulmón',        val:document.getElementById('k-absc').textContent},
+    {lbl:'Nódulo pulmón',         val:document.getElementById('k-nodu').textContent},
+    {lbl:'Pericarditis',          val:document.getElementById('k-peri').textContent},
+    {lbl:'Manchas de leche',      val:document.getElementById('k-manc').textContent},
+  ];
+  const artefactos=[
+    {lbl:'Artefacto agua',   val:document.getElementById('k-agua').textContent},
+    {lbl:'Artefacto sangre', val:document.getElementById('k-sang').textContent},
+    {lbl:'Petequias',        val:document.getElementById('k-pete').textContent},
+  ];
+
+  const filtrosDesc=document.getElementById('pdf-filtros-desc').textContent;
+  const fecha=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  const n=filteredData.length;
+
+  const html=`
+    <div class="print-header">
+      <h1>Score Pulmonar — Informe de Resultados</h1>
+      <p>${filtrosDesc} &nbsp;·&nbsp; ${n} cerdos inspeccionados &nbsp;·&nbsp; Generado: ${fecha}</p>
+    </div>
+
+    <div class="print-section">Indicadores principales</div>
+    <div class="print-kpis">
+      ${kpis.map(k=>`<div class="print-kpi"><div class="pk-lbl">${k.lbl}</div><div class="pk-val">${k.val}</div></div>`).join('')}
+    </div>
+
+    <div class="print-section">Otras lesiones</div>
+    <div class="print-lesiones">
+      ${lesiones.map(l=>`<div class="print-les"><div class="pl-lbl">${l.lbl}</div><div class="pl-val">${l.val}</div></div>`).join('')}
+    </div>
+
+    <div class="print-section">Artefactos</div>
+    <div class="print-artefactos">
+      ${artefactos.map(a=>`<div class="print-les"><div class="pl-lbl">${a.lbl}</div><div class="pl-val">${a.val}</div></div>`).join('')}
+    </div>
+
+    <div class="print-section">Gráficas</div>
+    <div class="print-charts">
+      <div><div style="font-size:9pt;font-weight:600;color:#6b6558;margin-bottom:6px;">IDN promedio por granja</div><img src="${imgGranjas}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;"></div>
+      <div><div style="font-size:9pt;font-weight:600;color:#6b6558;margin-bottom:6px;">Distribución de severidad</div><img src="${imgSev}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;"></div>
+    </div>
+    <div class="print-chart-full">
+      <div style="font-size:9pt;font-weight:600;color:#6b6558;margin-bottom:6px;">Evolución IDN por fecha</div>
+      <img src="${imgLinea}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;">
+    </div>
+
+    <div class="print-footer">
+      <span>Desarrollado por Gestión Técnica Especializada — Cercafe</span>
+      <span>Score Pulmonar · Método de Madec</span>
+    </div>`;
+
+  const printArea=document.getElementById('print-area');
+  printArea.innerHTML=html;
+  printArea.style.display='block';
+
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{
+      printArea.style.display='none';
+      printArea.innerHTML='';
+    },1000);
+  },300);
+}
 </script>
 </body>
 </html>
