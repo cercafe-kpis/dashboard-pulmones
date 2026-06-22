@@ -103,6 +103,17 @@ tr:hover td{background:#faf9f6;}
 .sev-1{background:var(--amberl);color:var(--amber);}
 .sev-2{background:#fff0e0;color:#8b5000;}
 .sev-3{background:var(--redl);color:var(--red);}
+
+/* MINI CARDS lesiones */
+.mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;display:flex;flex-direction:column;gap:4px;}
+.mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.3;}
+.mini-card .mc-num{font-size:20px;font-weight:700;font-family:var(--mono);line-height:1;}
+.mini-card .mc-pct{font-size:11px;font-family:var(--mono);font-weight:500;}
+.mini-card .mc-sub{font-size:10px;color:var(--hint);}
+.mini-card.les .mc-num{color:var(--g);}
+.mini-card.les .mc-pct{color:var(--g);}
+.mini-card.art .mc-num{color:var(--blue);}
+.mini-card.art .mc-pct{color:var(--blue);}
 .no-data{text-align:center;padding:2.5rem;color:var(--hint);font-size:13px;}
 
 /* PDF MODAL */
@@ -220,18 +231,26 @@ const CONFIG={
         <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div></div>
       </div>
 
-      <!-- OTRAS LESIONES -->
-      <div class="sec">Otras lesiones</div>
-      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:1rem;">
-        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Neumonía intersticial</div><div class="kpi-val c1" id="k-nint" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-nint-sub">casos</div></div>
-        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Absceso pulmón</div><div class="kpi-val c1" id="k-absc" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-absc-sub">casos</div></div>
-        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Nódulo pulmón</div><div class="kpi-val c1" id="k-nodu" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-nodu-sub">casos</div></div>
-        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Pericarditis</div><div class="kpi-val c1" id="k-peri" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-peri-sub">casos</div></div>
-        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Manchas de leche</div><div class="kpi-val c1" id="k-manc" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-manc-sub">casos</div></div>
-        <div class="kpi-card c4" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Artefacto agua</div><div class="kpi-val c4" id="k-agua" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-agua-sub">casos</div></div>
-        <div class="kpi-card c4" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Artefacto sangre</div><div class="kpi-val c4" id="k-sang" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-sang-sub">casos</div></div>
-        <div class="kpi-card c4" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Petequias</div><div class="kpi-val c4" id="k-pete" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-pete-sub">casos</div></div>
+      <!-- TOTAL + OTRAS LESIONES -->
+      <div class="sec">Otras lesiones y artefactos</div>
+      <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:8px;">
+        <div class="kpi-card" style="min-width:130px;flex-shrink:0;background:var(--g);border-color:var(--g);">
+          <div class="kpi-lbl" style="color:rgba(255,255,255,.75);">Total inspeccionados</div>
+          <div class="kpi-val" style="color:#fff;font-size:32px;" id="k-total-n">—</div>
+          <div class="kpi-sub" style="color:rgba(255,255,255,.6);">cerdos</div>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:8px;">
+          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-num" id="k-nint-n">—</div><div class="mc-pct" id="k-nint-p">—</div></div>
+          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-num" id="k-absc-n">—</div><div class="mc-pct" id="k-absc-p">—</div></div>
+          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-num" id="k-nodu-n">—</div><div class="mc-pct" id="k-nodu-p">—</div></div>
+          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-num" id="k-peri-n">—</div><div class="mc-pct" id="k-peri-p">—</div></div>
+          <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-num" id="k-manc-n">—</div><div class="mc-pct" id="k-manc-p">—</div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-num" id="k-agua-n">—</div><div class="mc-pct" id="k-agua-p">—</div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-num" id="k-sang-n">—</div><div class="mc-pct" id="k-sang-p">—</div></div>
+          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-num" id="k-pete-n">—</div><div class="mc-pct" id="k-pete-p">—</div></div>
+        </div>
       </div>
+
 
       <!-- ANÁLISIS DE RESULTADOS -->
       <div class="sec">Análisis de resultados</div>
@@ -478,6 +497,8 @@ function actualizarKPIs(){
 
   document.getElementById('k-idn').textContent=idn.toFixed(4);
   document.getElementById('k-idn-sub').textContent=filteredData.length+' cerdos inspeccionados';
+  const totalEl=document.getElementById('k-total-n');
+  if(totalEl)totalEl.textContent=filteredData.length;
   document.getElementById('k-consol').textContent=pctConsol.toFixed(2)+'%';
   document.getElementById('k-consol-sub').textContent='promedio de '+filteredData.length+' cerdos';
   const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
@@ -494,22 +515,19 @@ function actualizarKPIs(){
   },100);
 
   // Otras lesiones
-  const lesiones={
+  const todasLes={
     nint:'neumonia_intersticial', absc:'absceso_pulmon',
-    nodu:'nodulo_pulmon', peri:'pericarditis', manc:'manchas_leche'
+    nodu:'nodulo_pulmon', peri:'pericarditis', manc:'manchas_leche',
+    agua:'artefacto_agua', sang:'artefacto_sangre', pete:'petequias'
   };
-  Object.entries(lesiones).forEach(([key,campo])=>{
+  Object.entries(todasLes).forEach(([key,campo])=>{
     const cnt=filteredData.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
-    document.getElementById('k-'+key).textContent=cnt+' ('+Math.round(cnt/n*100)+'%)';
-    document.getElementById('k-'+key+'-sub').textContent='de '+n+' inspeccionados';
-  });
-
-  // Artefactos
-  const artefactos={agua:'artefacto_agua',sang:'artefacto_sangre',pete:'petequias'};
-  Object.entries(artefactos).forEach(([key,campo])=>{
-    const cnt=filteredData.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
-    document.getElementById('k-'+key).textContent=cnt+' ('+Math.round(cnt/n*100)+'%)';
-    document.getElementById('k-'+key+'-sub').textContent='de '+n+' inspeccionados';
+    const pct=Math.round(cnt/n*100);
+    const nEl=document.getElementById('k-'+key+'-n');
+    const pEl=document.getElementById('k-'+key+'-p');
+    const sEl=document.getElementById('k-'+key+'-sub');
+    if(nEl)nEl.textContent=cnt;
+    if(pEl)pEl.textContent='('+pct+'%)';
   });
 }
 
@@ -936,14 +954,14 @@ function imprimirPDF(){
   ];
 
   const lesiones=[
-    {lbl:'Neumonía intersticial', val:document.getElementById('k-nint').textContent},
-    {lbl:'Absceso pulmón',        val:document.getElementById('k-absc').textContent},
-    {lbl:'Nódulo pulmón',         val:document.getElementById('k-nodu').textContent},
-    {lbl:'Pericarditis',          val:document.getElementById('k-peri').textContent},
-    {lbl:'Manchas de leche',      val:document.getElementById('k-manc').textContent},
-    {lbl:'Artefacto agua',        val:document.getElementById('k-agua').textContent},
-    {lbl:'Artefacto sangre',      val:document.getElementById('k-sang').textContent},
-    {lbl:'Petequias',             val:document.getElementById('k-pete').textContent},
+    {lbl:'Neumonía intersticial', val:(document.getElementById('k-nint-n')||{}).textContent+' '+(document.getElementById('k-nint-p')||{}).textContent},
+    {lbl:'Absceso pulmón',        val:(document.getElementById('k-absc-n')||{}).textContent+' '+(document.getElementById('k-absc-p')||{}).textContent},
+    {lbl:'Nódulo pulmón',         val:(document.getElementById('k-nodu-n')||{}).textContent+' '+(document.getElementById('k-nodu-p')||{}).textContent},
+    {lbl:'Pericarditis',          val:(document.getElementById('k-peri-n')||{}).textContent+' '+(document.getElementById('k-peri-p')||{}).textContent},
+    {lbl:'Manchas de leche',      val:(document.getElementById('k-manc-n')||{}).textContent+' '+(document.getElementById('k-manc-p')||{}).textContent},
+    {lbl:'Artefacto agua',        val:(document.getElementById('k-agua-n')||{}).textContent+' '+(document.getElementById('k-agua-p')||{}).textContent},
+    {lbl:'Artefacto sangre',      val:(document.getElementById('k-sang-n')||{}).textContent+' '+(document.getElementById('k-sang-p')||{}).textContent},
+    {lbl:'Petequias',             val:(document.getElementById('k-pete-n')||{}).textContent+' '+(document.getElementById('k-pete-p')||{}).textContent},
   ];
 
   const html=`
