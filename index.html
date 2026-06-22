@@ -195,10 +195,28 @@ const CONFIG={
 
       <div class="sec">Indicadores principales</div>
       <div class="kpi-grid">
-        <div class="kpi-card c1"><div class="kpi-lbl">IDN promedio</div><div class="kpi-val c1" id="k-idn">—</div><div class="kpi-sub" id="k-idn-sub">Índice de Madec</div></div>
-        <div class="kpi-card c2"><div class="kpi-lbl">Cerdos con neumonía</div><div class="kpi-val c2" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">del total inspeccionado</div></div>
-        <div class="kpi-card c3"><div class="kpi-lbl">Pérdidas GDP totales</div><div class="kpi-val c3" id="k-gdp">—</div><div class="kpi-sub">kg estimados</div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">IDN (CT/TCE)</div><div class="kpi-val c1" id="k-idn">—</div><div class="kpi-sub" id="k-idn-sub">Índice de Neumonía</div></div>
+        <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="kpi-sub" id="k-consol-sub">promedio por cerdo</div></div>
+        <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">cerdos con lesión</div></div>
         <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div></div>
+      </div>
+
+      <!-- OTRAS LESIONES -->
+      <div class="sec">Otras lesiones</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:.75rem;">
+        <div class="kpi-card c1"><div class="kpi-lbl">Neumonía intersticial</div><div class="kpi-val c1" id="k-nint">—</div><div class="kpi-sub" id="k-nint-sub">casos</div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">Absceso pulmón</div><div class="kpi-val c1" id="k-absc">—</div><div class="kpi-sub" id="k-absc-sub">casos</div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">Nódulo pulmón</div><div class="kpi-val c1" id="k-nodu">—</div><div class="kpi-sub" id="k-nodu-sub">casos</div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">Pericarditis</div><div class="kpi-val c1" id="k-peri">—</div><div class="kpi-sub" id="k-peri-sub">casos</div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">Manchas de leche</div><div class="kpi-val c1" id="k-manc">—</div><div class="kpi-sub" id="k-manc-sub">casos</div></div>
+      </div>
+
+      <!-- ARTEFACTOS -->
+      <div class="sec">Artefactos</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1rem;">
+        <div class="kpi-card c4"><div class="kpi-lbl">Artefacto agua</div><div class="kpi-val c4" id="k-agua">—</div><div class="kpi-sub" id="k-agua-sub">casos</div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Artefacto sangre</div><div class="kpi-val c4" id="k-sang">—</div><div class="kpi-sub" id="k-sang-sub">casos</div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Petequias</div><div class="kpi-val c4" id="k-pete">—</div><div class="kpi-sub" id="k-pete-sub">casos</div></div>
       </div>
 
       <div class="sec">Gráficas</div>
@@ -408,15 +426,42 @@ function calcIDN(data){
 
 function actualizarKPIs(){
   const n=filteredData.length||1;
+  // IDN = CT/TCE por lote
   const idn=calcIDN(filteredData);
+  // % Consolidación = promedio de consolidacion_total por cerdo
+  const pctConsol=filteredData.reduce((s,d)=>s+(parseFloat(d.consolidacion_total)||0),0)/n;
+  // Frecuencia neumonía = % cerdos con categoría > 0
   const neum=filteredData.filter(d=>(parseInt(d.categoria)||0)>0&&(parseFloat(d.consolidacion_total)||0)>0).length;
-  const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
+  // Frecuencia pleuritis
   const pleur=filteredData.filter(d=>d.pleuritis_total).length;
+
   document.getElementById('k-idn').textContent=idn.toFixed(4);
   document.getElementById('k-idn-sub').textContent=filteredData.length+' cerdos inspeccionados';
+  document.getElementById('k-consol').textContent=pctConsol.toFixed(2)+'%';
+  document.getElementById('k-consol-sub').textContent='promedio de '+filteredData.length+' cerdos';
   document.getElementById('k-neum').textContent=neum+' ('+Math.round(neum/n*100)+'%)';
-  document.getElementById('k-gdp').textContent=gdp.toFixed(1)+' kg';
+  document.getElementById('k-neum-sub').textContent='de '+n+' inspeccionados';
   document.getElementById('k-pleur').textContent=pleur+' ('+Math.round(pleur/n*100)+'%)';
+  document.getElementById('k-pleur-sub').textContent='de '+n+' inspeccionados';
+
+  // Otras lesiones
+  const lesiones={
+    nint:'neumonia_intersticial', absc:'absceso_pulmon',
+    nodu:'nodulo_pulmon', peri:'pericarditis', manc:'manchas_leche'
+  };
+  Object.entries(lesiones).forEach(([key,campo])=>{
+    const cnt=filteredData.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
+    document.getElementById('k-'+key).textContent=cnt+' ('+Math.round(cnt/n*100)+'%)';
+    document.getElementById('k-'+key+'-sub').textContent='de '+n+' inspeccionados';
+  });
+
+  // Artefactos
+  const artefactos={agua:'artefacto_agua',sang:'artefacto_sangre',pete:'petequias'};
+  Object.entries(artefactos).forEach(([key,campo])=>{
+    const cnt=filteredData.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
+    document.getElementById('k-'+key).textContent=cnt+' ('+Math.round(cnt/n*100)+'%)';
+    document.getElementById('k-'+key+'-sub').textContent='de '+n+' inspeccionados';
+  });
 }
 
 /* ── GRÁFICAS EN CANVAS NATIVO ── */
