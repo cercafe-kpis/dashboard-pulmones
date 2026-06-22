@@ -471,6 +471,9 @@ function aplicarFiltros(){
   dibujarGraficas();
   actualizarTablas();
   document.getElementById('contenido').style.display='block';
+  // Redibujar gráficas después de que el DOM calcule los tamaños correctos
+  setTimeout(()=>dibujarGraficas(), 100);
+  setTimeout(()=>dibujarGraficas(), 400);
 }
 
 function limpiarFiltros(){
