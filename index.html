@@ -106,7 +106,7 @@ tr:hover td{background:#faf9f6;}
 
 /* MINI CARDS lesiones */
 .mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;display:flex;flex-direction:column;}
-.mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.3;min-height:2.6em;margin-bottom:4px;}
+.mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.3;height:2.8em;margin-bottom:4px;overflow:hidden;}
 .mini-card .mc-row{display:flex;align-items:baseline;gap:4px;margin-top:auto;}
 .mini-card .mc-num{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
 .mini-card .mc-pct{font-size:11px;font-family:var(--mono);font-weight:500;}
@@ -828,9 +828,9 @@ function cerrarPDF(){
 
 function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
   let sevIdn='',recIdn='',colorIdn='';
-  if(idn<0.56){sevIdn='Leve';colorIdn='var(--g)';recIdn='Resultados satisfactorios. Mantener plan vacunal y continuar monitoreo periódico.';}
-  else if(idn<=0.89){sevIdn='Moderado';colorIdn='var(--amber)';recIdn='Neumonía presente pero no constituye amenaza grave. Revisar factores de riesgo, densidad, ventilación y vacunación.';}
-  else{sevIdn='Severo';colorIdn='var(--red)';recIdn='Neumonía grave. Revisión urgente del plan vacunal, bioseguridad y manejo sanitario.';}
+  if(idn<0.56){sevIdn='Leve';colorIdn='var(--g)';recIdn='Resultados satisfactorios. Mantener el plan sanitario actual y continuar con el monitoreo periódico.';}
+  else if(idn<=0.89){sevIdn='Moderado';colorIdn='var(--amber)';recIdn='Presencia de neumonía sin constituir amenaza grave. Revisar factores de riesgo como densidad, ventilación, manejo y plan vacunal.';}
+  else{sevIdn='Severo';colorIdn='var(--red)';recIdn='Presencia de neumonía grave. Se recomienda revisión urgente del plan sanitario, condiciones de bioseguridad y manejo del lote.';}
 
   let sevConsol='';
   if(consol<=10)sevConsol='Baja consolidación pulmonar.';
@@ -840,9 +840,9 @@ function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
   const pleurPct=Math.round(pleur/n*100);
   let analPleur='';
   if(pleurPct===0)analPleur='Sin casos de pleuritis registrados.';
-  else if(pleurPct<=20)analPleur=`Frecuencia baja (${pleurPct}%). Monitorear.`;
-  else if(pleurPct<=40)analPleur=`Frecuencia moderada (${pleurPct}%). Revisar alojamiento y Lawsonia.`;
-  else analPleur=`Frecuencia elevada (${pleurPct}%). Atención prioritaria — posible Actinobacillus o Mycoplasma.`;
+  else if(pleurPct<=20)analPleur=`Frecuencia baja (${pleurPct}%). Monitorear evolución.`;
+  else if(pleurPct<=40)analPleur=`Frecuencia moderada (${pleurPct}%). Revisar condiciones de alojamiento y manejo.`;
+  else analPleur=`Frecuencia elevada (${pleurPct}%). Requiere atención prioritaria — revisar plan sanitario.`;
 
   return `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -899,8 +899,8 @@ function generarAnalisis(kpis, n){
   let analPleur='';
   if(pleurPct===0)analPleur='Sin casos de pleuritis registrados.';
   else if(pleurPct<=20)analPleur=`Frecuencia de pleuritis baja (${pleurPct}%). Monitorear.`;
-  else if(pleurPct<=40)analPleur=`Frecuencia de pleuritis moderada (${pleurPct}%). Revisar condiciones de alojamiento y Lawsonia.`;
-  else analPleur=`Frecuencia de pleuritis elevada (${pleurPct}%). Requiere atención prioritaria — posible Actinobacillus o Mycoplasma.`;
+  else if(pleurPct<=40)analPleur=`Frecuencia de pleuritis moderada (${pleurPct}%). Revisar condiciones de alojamiento y manejo.`;
+  else analPleur=`Frecuencia de pleuritis elevada (${pleurPct}%). Requiere atención prioritaria — revisar plan sanitario.`;
 
   return `
     <div style="margin-top:14px;padding:12px 14px;background:#faf9f6;border:1px solid #d4cfc4;border-radius:8px;">
