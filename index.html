@@ -161,6 +161,10 @@ const CONFIG={
     <div class="filtros-card">
       <div class="filtros-grid">
         <div class="field">
+          <label class="lbl">Asociado</label>
+          <select id="f-asociado" onchange="filtrarPorAsociado()"><option value="">Todos los asociados</option></select>
+        </div>
+        <div class="field">
           <label class="lbl">Granja</label>
           <select id="f-granja"><option value="">Todas las granjas</option></select>
         </div>
@@ -249,6 +253,12 @@ const CONFIG={
 
 <script>
 let msalApp,spSiteId='',spListId='';
+const GRANJAS=[{"id": 1, "n": "LA FABIOLA", "v": "La Fabiola"}, {"id": 2, "n": "CAMPEON", "v": "Campeon"}, {"id": 4, "n": "EL BOSQUE", "v": "Salamanca"}, {"id": 6, "n": "BUENOS AIRES CER", "v": "Buenos Aires CER"}, {"id": 8, "n": "CORCEGA", "v": "Corcega"}, {"id": 9, "n": "VERSALLES", "v": "Versalles"}, {"id": 15, "n": "SIERRA MORENA", "v": "Sierramorena"}, {"id": 17, "n": "LA SELVA", "v": "La Selva"}, {"id": 18, "n": "OASIS", "v": "Oasis"}, {"id": 19, "n": "BUENOS AIRES GAM", "v": "Buenos Aires GAM"}, {"id": 20, "n": "EL TREBOL", "v": "El Trebol"}, {"id": 25, "n": "LA ESTRELLA", "v": "La Estrella"}, {"id": 26, "n": "EL JAZMIN", "v": "El Jazmin"}, {"id": 27, "n": "CORCEGA WTF", "v": "Corcega WTF"}, {"id": 28, "n": "EL ESTERO", "v": "El Estero"}, {"id": 29, "n": "MIRAFLORES", "v": "Miraflores"}, {"id": 30, "n": "ALAMOS", "v": "Alamos"}, {"id": 33, "n": "CORCEGA WTF 2", "v": "Corcega WTF2"}, {"id": 36, "n": "LA CECILIA", "v": "La Cecilia"}, {"id": 41, "n": "CRECERDOS", "v": "Crecerdos"}, {"id": 42, "n": "PROCERDOS", "v": "Procerdos"}, {"id": 44, "n": "LA CIBERITA CDO", "v": "La Ciberita"}, {"id": 46, "n": "SAN LUIS CEBA CDO", "v": "San Luis"}, {"id": 47, "n": "PRAGA CEBA CDO", "v": "Praga"}, {"id": 49, "n": "MONTECERDO", "v": "Montecerdo"}, {"id": 50, "n": "SAN LORENZO CDO", "v": "San Lorenzo"}, {"id": 51, "n": "AGROPECUARIA GUAIMARAL SAS", "v": "Guaymaral"}, {"id": 52, "n": "EL RUBI CDO", "v": "El Rubi"}, {"id": 53, "n": "LA ABUELITA CDO", "v": "La Abuelita"}, {"id": 54, "n": "LA ESPERANZA CDO", "v": "La Esperanza"}, {"id": 55, "n": "LA RUEDA CDO", "v": "La Rueda"}, {"id": 56, "n": "MIRAFLORES MB", "v": "Miraflores"}, {"id": 57, "n": "CAMILO BLANDON SILVA - LOS MELLOS", "v": "Los Mellos"}];
+// Mapa de nombre interno → Granja_vista
+const GRANJA_VISTA={};
+GRANJAS.forEach(g=>GRANJA_VISTA[g.n]=g.v);
+// Mapa de granja_nombre → Grupo Asociado
+const GRANJA_ASOCIADO={"LA FABIOLA": "HBM", "CAMPEON": "CAMPEON", "EL BOSQUE": "CER", "BUENOS AIRES CER": "CER", "CORCEGA": "CER", "VERSALLES": "AGRO JABAR", "SIERRA MORENA": "GAM", "LA SELVA": "GAM", "OASIS": "GAM", "BUENOS AIRES GAM": "GAM", "EL TREBOL": "HBM", "LA ESTRELLA": "AGRO JABAR", "EL JAZMIN": "HBM", "CORCEGA WTF": "CER", "EL ESTERO": "GAM", "MIRAFLORES": "HBM", "ALAMOS": "GAM", "CORCEGA WTF 2": "CER", "LA CECILIA": "AGRO JABAR", "CRECERDOS": "CAMPEON", "PROCERDOS": "CAMPEON", "LA CIBERITA CDO": "CERDOS DEL OTUN", "SAN LUIS CEBA CDO": "CERDOS DEL OTUN", "PRAGA CEBA CDO": "CERDOS DEL OTUN", "MONTECERDO": "CAMPEON", "SAN LORENZO CDO": "CERDOS DEL OTUN", "AGROPECUARIA GUAIMARAL SAS": "CER", "EL RUBI CDO": "CERDOS DEL OTUN", "LA ABUELITA CDO": "CERDOS DEL OTUN", "LA ESPERANZA CDO": "CERDOS DEL OTUN", "LA RUEDA CDO": "CERDOS DEL OTUN", "MIRAFLORES MB": "HBM", "CAMILO BLANDON SILVA - LOS MELLOS": "HBM"};
 let allData=[],filteredData=[];
 
 async function doLogin(){
@@ -320,11 +330,31 @@ async function cargarDatos(){
 }
 
 function poblarFiltros(){
+  // Poblar asociados
+  const asociados=[...new Set(allData.map(d=>GRANJA_ASOCIADO[d.granja_nombre]).filter(Boolean))].sort();
+  const selA=document.getElementById('f-asociado');
+  selA.innerHTML='<option value="">Todos los asociados</option>';
+  asociados.forEach(a=>selA.innerHTML+=`<option value="${a}">${a}</option>`);
+  // Poblar granjas
   const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort();
   const sel=document.getElementById('f-granja');
   sel.innerHTML='<option value="">Todas las granjas</option>';
-  granjas.forEach(g=>sel.innerHTML+=`<option value="${g}">${g}</option>`);
+  granjas.forEach(g=>sel.innerHTML+=`<option value="${g}">${GRANJA_VISTA[g]||g}</option>`);
   poblarConsec(allData);
+}
+
+function filtrarPorAsociado(){
+  const asoc=document.getElementById('f-asociado').value;
+  // Resetear granja al cambiar asociado
+  document.getElementById('f-granja').value='';
+  // Filtrar granjas del select según asociado
+  const sel=document.getElementById('f-granja');
+  const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Todas las granjas</option>';
+  granjas
+    .filter(g=>!asoc||GRANJA_ASOCIADO[g]===asoc)
+    .forEach(g=>sel.innerHTML+=`<option value="${g}">${GRANJA_VISTA[g]||g}</option>`);
+  aplicarFiltros();
 }
 
 function poblarConsec(data){
@@ -335,11 +365,13 @@ function poblarConsec(data){
 }
 
 function aplicarFiltros(){
+  const asoc=document.getElementById('f-asociado').value;
   const g=document.getElementById('f-granja').value;
   const c=document.getElementById('f-consec').value;
   const d=document.getElementById('f-desde').value;
   const h=document.getElementById('f-hasta').value;
   filteredData=allData.filter(r=>{
+    if(asoc&&GRANJA_ASOCIADO[r.granja_nombre]!==asoc)return false;
     if(g&&r.granja_nombre!==g)return false;
     if(c&&r.consecutivo!==c)return false;
     if(d&&r.fecha_inspeccion&&r.fecha_inspeccion<d)return false;
@@ -354,7 +386,7 @@ function aplicarFiltros(){
 }
 
 function limpiarFiltros(){
-  ['f-granja','f-consec','f-desde','f-hasta'].forEach(id=>document.getElementById(id).value='');
+  ['f-asociado','f-granja','f-consec','f-desde','f-hasta'].forEach(id=>document.getElementById(id).value='');
   poblarConsec(allData);
   aplicarFiltros();
 }
@@ -395,7 +427,9 @@ function dibujarBarras(){
     porG[g].cnt++;
   });
   const labels=Object.keys(porG).sort();
+  const labelsVista=labels.map(g=>GRANJA_VISTA[g]||g);
   const vals=labels.map(g=>porG[g].sum/porG[g].cnt);
+  // labelsVista ya definido arriba
   const colors=vals.map(v=>v<=.10?'#2d8c4e':v<=.25?'#c07a20':v<=.50?'#c06000':'#c0392b');
 
   const el=document.getElementById('ch-granjas');
@@ -404,6 +438,7 @@ function dibujarBarras(){
   const ctx=el.getContext('2d');
   ctx.clearRect(0,0,W,H);
 
+  const displayLabels=labelsVista||labels;
   if(!labels.length){ctx.fillStyle='#9e9589';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
 
   const PAD={t:10,r:10,b:50,l:40};
@@ -422,7 +457,7 @@ function dibujarBarras(){
   }
 
   // Barras
-  labels.forEach((lbl,i)=>{
+  displayLabels.forEach((lbl,i)=>{
     const x=PAD.l+gap*i+gap/2-barW/2;
     const barH=cH*(vals[i]/maxV);
     const y=PAD.t+cH-barH;
@@ -577,7 +612,7 @@ function actualizarTablas(){
     const sevP=Object.entries(pg.sevs).sort((a,b)=>b[1]-a[1])[0][0];
     const sc={Sin:'sev-0',Leve:'sev-1',Moderada:'sev-2',Severa:'sev-3'}[sevP];
     tbG.innerHTML+=`<tr>
-      <td><strong>${g}</strong></td>
+      <td><strong>${GRANJA_VISTA[g]||g}</strong></td>
       <td class="td-num">${pg.lotes.size}</td>
       <td class="td-num">${pg.n}</td>
       <td class="td-num">${idn}</td>
@@ -599,7 +634,7 @@ function actualizarTablas(){
     else if(idn>.25&&idn<=.50){sev='Moderada';sc='sev-2';}
     else if(idn>.50){sev='Severa';sc='sev-3';}
     tbD.innerHTML+=`<tr>
-      <td>${d.granja_nombre||'—'}</td>
+      <td>${GRANJA_VISTA[d.granja_nombre]||d.granja_nombre||'—'}</td>
       <td class="td-num">${d.consecutivo||'—'}</td>
       <td class="td-num">${d.orden||'—'}</td>
       <td>${(d.fecha_inspeccion||'').split('T')[0]||'—'}</td>
