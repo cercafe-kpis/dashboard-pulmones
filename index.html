@@ -409,7 +409,7 @@ function calcIDN(data){
 function actualizarKPIs(){
   const n=filteredData.length||1;
   const idn=calcIDN(filteredData);
-  const neum=filteredData.filter(d=>(parseInt(d.categoria)||0)>0).length;
+  const neum=filteredData.filter(d=>(parseInt(d.categoria)||0)>0&&(parseFloat(d.consolidacion_total)||0)>0).length;
   const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
   const pleur=filteredData.filter(d=>d.pleuritis_total).length;
   document.getElementById('k-idn').textContent=idn.toFixed(4);
@@ -434,18 +434,25 @@ function limpiarCanvas(id){
 }
 
 function dibujarBarras(){
+  // IDN por granja = promedio de CT/TCE por cada lote de esa granja
   const porG={};
   filteredData.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
-    if(!porG[g]){porG[g]={sum:0,cnt:0};}
-    porG[g].sum+=parseFloat(d.indice_madec)||0;
-    porG[g].cnt++;
+    const loteKey=g+'_'+(d.consecutivo||'');
+    if(!porG[g])porG[g]={lotes:{}};
+    if(!porG[g].lotes[loteKey])porG[g].lotes[loteKey]={ct:0,tce:0};
+    porG[g].lotes[loteKey].ct+=parseInt(d.categoria)||0;
+    porG[g].lotes[loteKey].tce++;
   });
   const labels=Object.keys(porG).sort();
-  const labelsVista=labels.map(g=>GRANJA_VISTA[g]||g);
-  const vals=labels.map(g=>porG[g].sum/porG[g].cnt);
-  // labelsVista ya definido arriba
-  const colors=vals.map(v=>v<=.10?'#2d8c4e':v<=.25?'#c07a20':v<=.50?'#c06000':'#c0392b');
+  const labelsVista=labels.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
+  const vals=labels.map(g=>{
+    const lotes=Object.values(porG[g].lotes);
+    const idns=lotes.map(l=>l.tce>0?l.ct/l.tce:0);
+    return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
+  });
+  // Color basado en IDN (escala 0-6, no 0-1)
+  const colors=vals.map(v=>v<0.56?'#2d8c4e':v<=0.89?'#c07a20':v<=1.5?'#c06000':'#c0392b');
 
   const el=document.getElementById('ch-granjas');
   const W=el.parentElement.clientWidth-32||400, H=220;
@@ -494,10 +501,10 @@ function dibujarBarras(){
 function dibujarDona(){
   const sevs={Sin:0,Leve:0,Moderada:0,Severa:0};
   filteredData.forEach(d=>{
-    const v=parseFloat(d.indice_madec)||0;
-    if(v<=.10)sevs.Sin++;
-    else if(v<=.25)sevs.Leve++;
-    else if(v<=.50)sevs.Moderada++;
+    const consol=parseFloat(d.consolidacion_total)||0;
+    if(consol<=0)sevs.Sin++;
+    else if(consol<=10)sevs.Leve++;
+    else if(consol<=30)sevs.Moderada++;
     else sevs.Severa++;
   });
 
@@ -617,10 +624,11 @@ function actualizarTablas(){
     const idn=parseFloat(d.consolidacion_total)||0;
     pg.sumIdn+=idn;
     const cat=parseInt(d.categoria)||0;
-    if(cat>0)pg.neum++;
+    if(cat>0&&(parseFloat(d.consolidacion_total)||0)>0)pg.neum++;
     if(d.pleuritis_total)pg.pleur++;
     pg.sumGdp+=parseFloat(d.perdida_gdp_kg)||0;
-    if(idn<=.10)pg.sevs.Sin++;else if(idn<=.25)pg.sevs.Leve++;else if(idn<=.50)pg.sevs.Moderada++;else pg.sevs.Severa++;
+    const consolIndiv=parseFloat(d.consolidacion_total)||0;
+    if(consolIndiv<=0)pg.sevs.Sin++;else if(consolIndiv<=10)pg.sevs.Leve++;else if(consolIndiv<=30)pg.sevs.Moderada++;else pg.sevs.Severa++;
   });
 
   const tbG=document.getElementById('tbody-g');
@@ -648,11 +656,11 @@ function actualizarTablas(){
   tbD.innerHTML='';
   if(!filteredData.length){tbD.innerHTML='<tr><td colspan="10" class="no-data">Sin datos</td></tr>';return;}
   [...filteredData].sort((a,b)=>(a.fecha_inspeccion||'')<(b.fecha_inspeccion||'')?-1:1).forEach(d=>{
-    const idn=parseFloat(d.indice_madec)||0;
+    const consol=parseFloat(d.consolidacion_total)||0;
     let sev='Sin',sc='sev-0';
-    if(idn>.10&&idn<=.25){sev='Leve';sc='sev-1';}
-    else if(idn>.25&&idn<=.50){sev='Moderada';sc='sev-2';}
-    else if(idn>.50){sev='Severa';sc='sev-3';}
+    if(consol>0&&consol<=10){sev='Leve';sc='sev-1';}
+    else if(consol>10&&consol<=30){sev='Moderada';sc='sev-2';}
+    else if(consol>30){sev='Severa';sc='sev-3';}
     tbD.innerHTML+=`<tr>
       <td>${GRANJA_VISTA[(d.granja_nombre||'').toUpperCase()]||d.granja_nombre||'—'}</td>
       <td class="td-num">${d.consecutivo||'—'}</td>
