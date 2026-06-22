@@ -222,20 +222,21 @@ const CONFIG={
 
       <!-- OTRAS LESIONES -->
       <div class="sec">Otras lesiones</div>
-      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:.75rem;">
-        <div class="kpi-card c1"><div class="kpi-lbl">Neumonía intersticial</div><div class="kpi-val c1" id="k-nint">—</div><div class="kpi-sub" id="k-nint-sub">casos</div></div>
-        <div class="kpi-card c1"><div class="kpi-lbl">Absceso pulmón</div><div class="kpi-val c1" id="k-absc">—</div><div class="kpi-sub" id="k-absc-sub">casos</div></div>
-        <div class="kpi-card c1"><div class="kpi-lbl">Nódulo pulmón</div><div class="kpi-val c1" id="k-nodu">—</div><div class="kpi-sub" id="k-nodu-sub">casos</div></div>
-        <div class="kpi-card c1"><div class="kpi-lbl">Pericarditis</div><div class="kpi-val c1" id="k-peri">—</div><div class="kpi-sub" id="k-peri-sub">casos</div></div>
-        <div class="kpi-card c1"><div class="kpi-lbl">Manchas de leche</div><div class="kpi-val c1" id="k-manc">—</div><div class="kpi-sub" id="k-manc-sub">casos</div></div>
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-bottom:1rem;">
+        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Neumonía intersticial</div><div class="kpi-val c1" id="k-nint" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-nint-sub">casos</div></div>
+        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Absceso pulmón</div><div class="kpi-val c1" id="k-absc" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-absc-sub">casos</div></div>
+        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Nódulo pulmón</div><div class="kpi-val c1" id="k-nodu" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-nodu-sub">casos</div></div>
+        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Pericarditis</div><div class="kpi-val c1" id="k-peri" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-peri-sub">casos</div></div>
+        <div class="kpi-card c1" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Manchas de leche</div><div class="kpi-val c1" id="k-manc" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-manc-sub">casos</div></div>
+        <div class="kpi-card c4" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Artefacto agua</div><div class="kpi-val c4" id="k-agua" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-agua-sub">casos</div></div>
+        <div class="kpi-card c4" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Artefacto sangre</div><div class="kpi-val c4" id="k-sang" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-sang-sub">casos</div></div>
+        <div class="kpi-card c4" style="display:flex;flex-direction:column;"><div class="kpi-lbl">Petequias</div><div class="kpi-val c4" id="k-pete" style="margin-top:auto;">—</div><div class="kpi-sub" id="k-pete-sub">casos</div></div>
       </div>
 
-      <!-- ARTEFACTOS -->
-      <div class="sec">Artefactos</div>
-      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1rem;">
-        <div class="kpi-card c4"><div class="kpi-lbl">Artefacto agua</div><div class="kpi-val c4" id="k-agua">—</div><div class="kpi-sub" id="k-agua-sub">casos</div></div>
-        <div class="kpi-card c4"><div class="kpi-lbl">Artefacto sangre</div><div class="kpi-val c4" id="k-sang">—</div><div class="kpi-sub" id="k-sang-sub">casos</div></div>
-        <div class="kpi-card c4"><div class="kpi-lbl">Petequias</div><div class="kpi-val c4" id="k-pete">—</div><div class="kpi-sub" id="k-pete-sub">casos</div></div>
+      <!-- ANÁLISIS DE RESULTADOS -->
+      <div class="sec">Análisis de resultados</div>
+      <div id="analisis-dashboard" style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:1rem;">
+        <div style="color:var(--hint);font-size:13px;text-align:center;">Cargando análisis...</div>
       </div>
 
       <div class="sec">Gráficas</div>
@@ -485,6 +486,12 @@ function actualizarKPIs(){
   document.getElementById('k-neum-sub').textContent='de '+n+' inspeccionados';
   document.getElementById('k-pleur').textContent=pleur+' ('+Math.round(pleur/n*100)+'%)';
   document.getElementById('k-pleur-sub').textContent='de '+n+' inspeccionados';
+
+  // Análisis en dashboard
+  setTimeout(()=>{
+    const analDiv=document.getElementById('analisis-dashboard');
+    if(analDiv) analDiv.innerHTML=generarAnalisisDashboard(idn,pctConsol,neum,n,pleur,gdp);
+  },100);
 
   // Otras lesiones
   const lesiones={
@@ -799,6 +806,58 @@ function exportarPDF(){
 
 function cerrarPDF(){
   document.getElementById('pdf-overlay').classList.remove('on');
+}
+
+function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
+  let sevIdn='',recIdn='',colorIdn='';
+  if(idn<0.56){sevIdn='Leve';colorIdn='var(--g)';recIdn='Resultados satisfactorios. Mantener plan vacunal y continuar monitoreo periódico.';}
+  else if(idn<=0.89){sevIdn='Moderado';colorIdn='var(--amber)';recIdn='Neumonía presente pero no constituye amenaza grave. Revisar factores de riesgo, densidad, ventilación y vacunación.';}
+  else{sevIdn='Severo';colorIdn='var(--red)';recIdn='Neumonía grave. Revisión urgente del plan vacunal, bioseguridad y manejo sanitario.';}
+
+  let sevConsol='';
+  if(consol<=10)sevConsol='Baja consolidación pulmonar.';
+  else if(consol<=25)sevConsol='Consolidación moderada — revisar patógenos respiratorios.';
+  else sevConsol='Alta consolidación — requiere intervención.';
+
+  const pleurPct=Math.round(pleur/n*100);
+  let analPleur='';
+  if(pleurPct===0)analPleur='Sin casos de pleuritis registrados.';
+  else if(pleurPct<=20)analPleur=`Frecuencia baja (${pleurPct}%). Monitorear.`;
+  else if(pleurPct<=40)analPleur=`Frecuencia moderada (${pleurPct}%). Revisar alojamiento y Lawsonia.`;
+  else analPleur=`Frecuencia elevada (${pleurPct}%). Atención prioritaria — posible Actinobacillus o Mycoplasma.`;
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tr style="background:var(--surface);">
+            <td style="padding:6px 10px;font-weight:600;width:40%;border:1px solid var(--borderl);">IDN (CT/TCE)</td>
+            <td style="padding:6px 10px;border:1px solid var(--borderl);">${idn.toFixed(4)} — <span style="color:${colorIdn};font-weight:600">${sevIdn}</span></td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;font-weight:600;border:1px solid var(--borderl);">% Consolidación</td>
+            <td style="padding:6px 10px;border:1px solid var(--borderl);">${consol.toFixed(2)}% — ${sevConsol}</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:6px 10px;font-weight:600;border:1px solid var(--borderl);">Frec. neumonía</td>
+            <td style="padding:6px 10px;border:1px solid var(--borderl);">${neum} de ${n} cerdos (${Math.round(neum/n*100)}%)</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;font-weight:600;border:1px solid var(--borderl);">Pleuritis</td>
+            <td style="padding:6px 10px;border:1px solid var(--borderl);">${analPleur}</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:6px 10px;font-weight:600;border:1px solid var(--borderl);">Pérdidas GDP</td>
+            <td style="padding:6px 10px;border:1px solid var(--borderl);">${gdp.toFixed(1)} kg estimados en pérdida de ganancia diaria de peso</td>
+          </tr>
+        </table>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--borderl);border-radius:var(--rs);padding:12px;border-left:3px solid ${colorIdn};">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">Recomendación</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--text);">${recIdn}</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--hint);">Escala IDN: <span style="color:#2d8c4e;font-weight:500">Leve &lt;0.56</span> · <span style="color:var(--amber);font-weight:500">Moderado 0.56–0.89</span> · <span style="color:var(--red);font-weight:500">Severo &gt;0.9</span></div>
+      </div>
+    </div>`;
 }
 
 function generarAnalisis(kpis, n){
