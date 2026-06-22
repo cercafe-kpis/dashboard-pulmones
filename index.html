@@ -194,10 +194,11 @@ const CONFIG={
     <div id="contenido" style="display:none">
 
       <div class="sec">Indicadores principales</div>
-      <div class="kpi-grid">
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
         <div class="kpi-card c1"><div class="kpi-lbl">IDN (CT/TCE)</div><div class="kpi-val c1" id="k-idn">—</div><div class="kpi-sub" id="k-idn-sub">Índice de Neumonía</div></div>
         <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="kpi-sub" id="k-consol-sub">promedio por cerdo</div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">cerdos con lesión</div></div>
+        <div class="kpi-card c3"><div class="kpi-lbl">Pérdidas GDP totales</div><div class="kpi-val c3" id="k-gdp">—</div><div class="kpi-sub">kg estimados</div></div>
         <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div></div>
       </div>
 
@@ -439,6 +440,8 @@ function actualizarKPIs(){
   document.getElementById('k-idn-sub').textContent=filteredData.length+' cerdos inspeccionados';
   document.getElementById('k-consol').textContent=pctConsol.toFixed(2)+'%';
   document.getElementById('k-consol-sub').textContent='promedio de '+filteredData.length+' cerdos';
+  const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
+  document.getElementById('k-gdp').textContent=gdp.toFixed(1)+' kg';
   document.getElementById('k-neum').textContent=neum+' ('+Math.round(neum/n*100)+'%)';
   document.getElementById('k-neum-sub').textContent='de '+n+' inspeccionados';
   document.getElementById('k-pleur').textContent=pleur+' ('+Math.round(pleur/n*100)+'%)';
