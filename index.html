@@ -106,14 +106,11 @@ tr:hover td{background:#faf9f6;}
 
 /* MINI CARDS lesiones */
 .mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.55rem .8rem;height:82px;display:flex;flex-direction:column;}
-.mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.2;order:2;margin-top:4px;}
-.mini-card .mc-row{display:flex;align-items:baseline;gap:4px;order:1;}
-.mini-card .mc-num{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
-.mini-card .mc-pct{font-size:11px;font-family:var(--mono);font-weight:500;}
-.mini-card.les .mc-num{color:var(--g);}
-.mini-card.les .mc-pct{color:var(--g);}
-.mini-card.art .mc-num{color:var(--blue);}
-.mini-card.art .mc-pct{color:var(--blue);}
+.mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.2;margin-top:auto;}
+.mini-card .mc-val{font-size:14px;font-weight:700;font-family:var(--mono);line-height:1.2;white-space:nowrap;}
+.mini-card .mc-val .mc-n{font-size:22px;}
+.mini-card.les .mc-val{color:var(--g);}
+.mini-card.art .mc-val{color:var(--blue);}
 .no-data{text-align:center;padding:2.5rem;color:var(--hint);font-size:13px;}
 
 /* PDF MODAL */
@@ -240,14 +237,14 @@ const CONFIG={
           <div class="kpi-sub" style="color:rgba(255,255,255,.6);">cerdos</div>
         </div>
         <div style="flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:8px;">
-          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-row"><div class="mc-num" id="k-nint-n">—</div><div class="mc-pct" id="k-nint-p">—</div></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-row"><div class="mc-num" id="k-absc-n">—</div><div class="mc-pct" id="k-absc-p">—</div></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-row"><div class="mc-num" id="k-nodu-n">—</div><div class="mc-pct" id="k-nodu-p">—</div></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-row"><div class="mc-num" id="k-peri-n">—</div><div class="mc-pct" id="k-peri-p">—</div></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span> <span id="k-nint-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span> <span id="k-absc-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span> <span id="k-nodu-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span> <span id="k-peri-p">—</span></div></div>
           <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-num" id="k-manc-n">—</div><div class="mc-pct" id="k-manc-p">—</div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-row"><div class="mc-num" id="k-agua-n">—</div><div class="mc-pct" id="k-agua-p">—</div></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-row"><div class="mc-num" id="k-sang-n">—</div><div class="mc-pct" id="k-sang-p">—</div></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-row"><div class="mc-num" id="k-pete-n">—</div><div class="mc-pct" id="k-pete-p">—</div></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span> <span id="k-agua-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span> <span id="k-sang-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span> <span id="k-pete-p">—</span></div></div>
         </div>
       </div>
 
