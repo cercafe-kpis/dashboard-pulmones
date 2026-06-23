@@ -105,9 +105,9 @@ tr:hover td{background:#faf9f6;}
 .sev-3{background:var(--redl);color:var(--red);}
 
 /* MINI CARDS lesiones */
-.mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;height:80px;display:grid;grid-template-rows:1fr auto;}
-.mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.2;align-self:start;}
-.mini-card .mc-row{display:flex;align-items:baseline;gap:4px;align-self:end;}
+.mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.6rem .8rem;height:82px;display:flex;flex-direction:column-reverse;justify-content:flex-start;gap:4px;}
+.mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.2;margin-top:auto;}
+.mini-card .mc-row{display:flex;align-items:baseline;gap:4px;flex-shrink:0;}
 .mini-card .mc-num{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
 .mini-card .mc-pct{font-size:11px;font-family:var(--mono);font-weight:500;}
 .mini-card.les .mc-num{color:var(--g);}
