@@ -543,6 +543,14 @@ function actualizarKPIs(){
   document.getElementById('k-consol-sub').textContent='promedio de '+filteredData.length+' cerdos';
   const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
   document.getElementById('k-gdp').textContent=gdp.toFixed(1)+' kg';
+  // Periodo evaluado
+  const _fechasPer=filteredData.map(d=>(d.fecha_inspeccion||'').split('T')[0]).filter(Boolean).sort();
+  if(_fechasPer.length){
+    const _fmt=f=>f.split('-').reverse().join('/');
+    document.getElementById('k-periodo').textContent='Período evaluado: '+_fmt(_fechasPer[0])+' – '+_fmt(_fechasPer[_fechasPer.length-1]);
+  } else {
+    document.getElementById('k-periodo').textContent='Período evaluado: sin datos';
+  }
   document.getElementById('k-neum').textContent=neum+' ('+(neum/n*100).toFixed(1)+'%)';
   document.getElementById('k-neum-sub').textContent='de '+n+' inspeccionados';
   document.getElementById('k-pleur').textContent=pleur+' ('+(pleur/n*100).toFixed(1)+'%)';
