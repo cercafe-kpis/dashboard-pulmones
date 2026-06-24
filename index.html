@@ -7,13 +7,14 @@
 <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <style>
 :root{
-  --g:#7b1010;--gd:#5a0c0c;--gl:#f9eaea;--gm:#a01515;
+  --g:#6B1A2A;--gd:#4e1220;--gl:#f8eff1;--gm:#8a2237;
   --red:#c0392b;--redl:#fdf0f0;
   --blue:#185fa5;--bluel:#edf4fc;
-  --amber:#c07a20;--amberl:#fdf5e8;
-  --border:#d4cfc4;--borderl:#e8e3da;
-  --bg:#f2efe9;--card:#fff;--surface:#faf9f6;
-  --text:#1a1814;--muted:#6b6558;--hint:#9e9589;
+  --amber:#b06200;--amberl:#fdf3e4;
+  --green:#1a6b3c;--greenl:#edf7f2;
+  --border:#d4c8cc;--borderl:#ede4e7;
+  --bg:#f5f0f1;--card:#fff;--surface:#fdf8f9;
+  --text:#1a1814;--muted:#6b5558;--hint:#9e878c;
   --r:12px;--rs:8px;
   --mono:'Courier New',monospace;
 }
@@ -77,6 +78,9 @@ select:focus,input:focus{outline:none;border-color:var(--gm);}
 .kpi-val.c3{color:var(--amber);}
 .kpi-val.c4{color:var(--blue);}
 .kpi-sub{font-size:11px;color:var(--hint);margin-top:4px;}
+.cercafe-ref{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:10px;color:var(--muted);border-top:1px solid var(--borderl);padding-top:4px;}
+.cercafe-ref .cr-val{font-family:var(--mono);font-weight:600;color:var(--g);}
+.cercafe-ref .cr-lbl{opacity:.7;}
 
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
 @media(max-width:800px){.charts-grid{grid-template-columns:1fr;}}
@@ -221,11 +225,11 @@ const CONFIG={
 
       <div class="sec">Indicadores principales</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
-        <div class="kpi-card c1"><div class="kpi-lbl">IDN (CT/TCE)</div><div class="kpi-val c1" id="k-idn">—</div><div class="kpi-sub" id="k-idn-sub">Índice de Neumonía</div></div>
-        <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="kpi-sub" id="k-consol-sub">promedio por cerdo</div></div>
-        <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">cerdos con lesión</div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">IDN (CT/TCE)</div><div class="kpi-val c1" id="k-idn">—</div><div class="kpi-sub" id="k-idn-sub">Índice de Neumonía</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-idn">—</span></div></div>
+        <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="kpi-sub" id="k-consol-sub">promedio por cerdo</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-consol">—</span></div></div>
+        <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">cerdos con lesión</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-neum">—</span></div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Pérdidas GDP totales</div><div class="kpi-val c3" id="k-gdp">—</div><div class="kpi-sub">kg estimados</div></div>
-        <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-pleur">—</span></div></div>
       </div>
 
       <!-- TOTAL + OTRAS LESIONES -->
@@ -266,8 +270,12 @@ const CONFIG={
           <canvas id="ch-sev" height="220"></canvas>
         </div>
         <div class="chart-card full">
-          <div class="chart-title">Evolución IDN por fecha</div>
+          <div class="chart-title">Evolución IDN por lote &nbsp;<span style="font-weight:400;color:var(--hint);font-size:11px">cada punto = un consecutivo</span></div>
           <canvas id="ch-linea" height="180"></canvas>
+        </div>
+        <div class="chart-card full">
+          <div class="chart-title">IDN promedio mensual</div>
+          <canvas id="ch-mensual" height="180"></canvas>
         </div>
       </div>
 
@@ -290,9 +298,9 @@ const CONFIG={
       <div id="vista-d" style="display:none">
         <div class="table-wrap"><div class="table-scroll">
           <table><thead><tr>
-            <th>Granja</th><th>Consecutivo</th><th>Orden</th><th>Fecha</th>
-            <th>IDN lote</th><th>Consolidación cerdo</th><th>Categoría</th>
-            <th>Pleuritis</th><th>GDP (kg)</th><th>Severidad</th>
+            <th>Granja</th><th>Consecutivo</th><th>Fecha</th><th>Cerdos</th>
+            <th>IDN lote (CT/TCE)</th><th>% Neumonía</th><th>% Pleuritis</th>
+            <th>GDP total (kg)</th><th>Severidad predominante</th>
           </tr></thead><tbody id="tbody-d"></tbody></table>
         </div></div>
       </div>
@@ -330,7 +338,23 @@ const GRANJAS=[{"id": 1, "n": "LA FABIOLA", "v": "La Fabiola"}, {"id": 2, "n": "
 const GRANJA_VISTA={"LA FABIOLA": "La Fabiola", "CAMPEON": "Campeon", "EL BOSQUE": "Salamanca", "BUENOS AIRES CER": "Buenos Aires CER", "CORCEGA": "Corcega", "VERSALLES": "Versalles", "SIERRA MORENA": "Sierramorena", "LA SELVA": "La Selva", "OASIS": "Oasis", "BUENOS AIRES GAM": "Buenos Aires GAM", "EL TREBOL": "El Trebol", "LA ESTRELLA": "La Estrella", "EL JAZMIN": "El Jazmin", "CORCEGA WTF": "Corcega WTF", "EL ESTERO": "El Estero", "MIRAFLORES": "Miraflores", "ALAMOS": "Alamos", "CORCEGA WTF 2": "Corcega WTF2", "LA CECILIA": "La Cecilia", "CRECERDOS": "Crecerdos", "PROCERDOS": "Procerdos", "LA CIBERITA CDO": "La Ciberita", "SAN LUIS CEBA CDO": "San Luis", "PRAGA CEBA CDO": "Praga", "MONTECERDO": "Montecerdo", "SAN LORENZO CDO": "San Lorenzo", "AGROPECUARIA GUAIMARAL SAS": "Guaymaral", "EL RUBI CDO": "El Rubi", "LA ABUELITA CDO": "La Abuelita", "LA ESPERANZA CDO": "La Esperanza", "LA RUEDA CDO": "La Rueda", "MIRAFLORES MB": "Miraflores", "CAMILO BLANDON SILVA - LOS MELLOS": "Los Mellos"};
 // Mapa de granja_nombre (mayúscula) → Grupo Asociado
 const GRANJA_ASOCIADO={"LA FABIOLA": "HBM", "CAMPEON": "CAMPEON", "EL BOSQUE": "CER", "BUENOS AIRES CER": "CER", "CORCEGA": "CER", "VERSALLES": "AGRO JABAR", "SIERRA MORENA": "GAM", "LA SELVA": "GAM", "OASIS": "GAM", "BUENOS AIRES GAM": "GAM", "EL TREBOL": "HBM", "LA ESTRELLA": "AGRO JABAR", "EL JAZMIN": "HBM", "CORCEGA WTF": "CER", "EL ESTERO": "GAM", "MIRAFLORES": "HBM", "ALAMOS": "GAM", "CORCEGA WTF 2": "CER", "LA CECILIA": "AGRO JABAR", "CRECERDOS": "CAMPEON", "PROCERDOS": "CAMPEON", "LA CIBERITA CDO": "CERDOS DEL OTUN", "SAN LUIS CEBA CDO": "CERDOS DEL OTUN", "PRAGA CEBA CDO": "CERDOS DEL OTUN", "MONTECERDO": "CAMPEON", "SAN LORENZO CDO": "CERDOS DEL OTUN", "AGROPECUARIA GUAIMARAL SAS": "CER", "EL RUBI CDO": "CERDOS DEL OTUN", "LA ABUELITA CDO": "CERDOS DEL OTUN", "LA ESPERANZA CDO": "CERDOS DEL OTUN", "LA RUEDA CDO": "CERDOS DEL OTUN", "MIRAFLORES MB": "HBM", "CAMILO BLANDON SILVA - LOS MELLOS": "HBM"};
-let allData=[],filteredData=[];
+let allData=[],filteredData=[],cercafeStats=null;
+
+function calcCercafeStats(){
+  // Calcular KPIs de toda la red (allData sin filtro) y guardarlos
+  const n=allData.length||1;
+  const idn=calcIDN(allData);
+  const pctConsol=allData.reduce((s,d)=>s+(parseFloat(d.consolidacion_total)||0),0)/n;
+  const neum=allData.filter(d=>(parseInt(d.categoria)||0)>0&&(parseFloat(d.consolidacion_total)||0)>0).length;
+  const pleur=allData.filter(d=>d.pleuritis_total).length;
+  cercafeStats={idn,pctConsol,neum,n,pleur};
+  // Mostrar en cards
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('cr-idn', idn.toFixed(4));
+  set('cr-consol', pctConsol.toFixed(2)+'%');
+  set('cr-neum', Math.round(neum/n*100)+'%');
+  set('cr-pleur', Math.round(pleur/n*100)+'%');
+}
 
 async function doLogin(){
   try{
@@ -394,6 +418,7 @@ async function cargarDatos(){
     }
     allData=items.map(i=>i.fields).filter(Boolean);
     poblarFiltros();
+    calcCercafeStats();
     aplicarFiltros();
     document.getElementById('last-upd').textContent='Actualizado: '+new Date().toLocaleTimeString('es-CO');
   }catch(e){showToast('Error: '+e.message,'err');}
@@ -533,6 +558,7 @@ function dibujarGraficas(){
   dibujarBarras();
   dibujarDona();
   dibujarLinea();
+  dibujarMensual();
 }
 
 function limpiarCanvas(id){
@@ -659,16 +685,21 @@ function dibujarDona(){
 }
 
 function dibujarLinea(){
-  const porF={};
+  // IDN por lote (CT/TCE) ordenado por fecha del lote
+  const lotes={};
   filteredData.forEach(d=>{
-    const f=(d.fecha_inspeccion||'').split('T')[0];
-    if(!f)return;
-    if(!porF[f]){porF[f]={sum:0,cnt:0};}
-    porF[f].sum+=parseFloat(d.indice_madec)||0;
-    porF[f].cnt++;
+    const key=(d.granja_nombre||'')+'_'+(d.consecutivo||'');
+    if(!lotes[key]){
+      const f=(d.fecha_inspeccion||'').split('T')[0];
+      lotes[key]={ct:0,tce:0,fecha:f,granja:GRANJA_VISTA[(d.granja_nombre||'').toUpperCase()]||d.granja_nombre||''};
+    }
+    lotes[key].ct+=parseInt(d.categoria)||0;
+    lotes[key].tce++;
   });
-  const fechas=Object.keys(porF).sort();
-  const vals=fechas.map(f=>porF[f].sum/porF[f].cnt);
+  const lotesArr=Object.values(lotes).filter(l=>l.fecha).sort((a,b)=>a.fecha<b.fecha?-1:1);
+  const vals=lotesArr.map(l=>l.tce>0?l.ct/l.tce:0);
+  const fechas=lotesArr.map(l=>l.fecha);
+  const granjas=lotesArr.map(l=>l.granja);
 
   const el=document.getElementById('ch-linea');
   const W=el.parentElement.clientWidth-32||800, H=180;
@@ -676,45 +707,170 @@ function dibujarLinea(){
   const ctx=el.getContext('2d');
   ctx.clearRect(0,0,W,H);
 
-  if(!fechas.length){ctx.fillStyle='#9e9589';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos suficientes',W/2,H/2);return;}
+  if(!lotesArr.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos suficientes',W/2,H/2);return;}
 
-  const PAD={t:10,r:20,b:40,l:45};
+  const PAD={t:14,r:20,b:40,l:45};
   const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
-  const maxV=Math.max(...vals,0.1);
+  const maxV=Math.max(...vals,0.5);
+  const n=lotesArr.length;
 
-  // Grilla
-  ctx.strokeStyle='#e8e3da';ctx.lineWidth=1;
+  // Grilla + franjas de severidad
+  // Severa >0.9 → fondo rojo tenue
+  const y09=PAD.t+cH-(cH*(0.9/maxV));
+  if(0.9<=maxV){ctx.fillStyle='rgba(192,57,43,.06)';ctx.fillRect(PAD.l,PAD.t,cW,Math.max(0,y09-PAD.t));}
+  // Moderado 0.56-0.89
+  const y056=PAD.t+cH-(cH*(Math.min(0.56,maxV)/maxV));
+  if(0.56<=maxV){ctx.fillStyle='rgba(176,98,0,.05)';ctx.fillRect(PAD.l,Math.max(PAD.t,y09),cW,Math.max(0,y056-Math.max(PAD.t,y09)));}
+
+  ctx.strokeStyle='#ede4e7';ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=PAD.t+cH-(cH*i/4);
     ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
-    ctx.fillStyle='#9e9589';ctx.font='10px monospace';ctx.textAlign='right';
-    ctx.fillText((maxV*i/4).toFixed(3),PAD.l-4,y+3);
+    ctx.fillStyle='#9e878c';ctx.font='9px monospace';ctx.textAlign='right';
+    ctx.fillText((maxV*i/4).toFixed(2),PAD.l-4,y+3);
   }
+  // Líneas de referencia
+  ['#2d8c4e','#b06200','#c0392b'].forEach((col,idx)=>{
+    const ref=[0,0.56,0.9][idx];
+    if(ref<=maxV){
+      const yr=PAD.t+cH-(cH*(ref/maxV));
+      ctx.strokeStyle=col;ctx.lineWidth=0.8;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(PAD.l,yr);ctx.lineTo(PAD.l+cW,yr);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=col;ctx.font='8px sans-serif';ctx.textAlign='left';
+      ctx.fillText(['Leve','Mod.','Sev.'][idx],PAD.l+cW+2,yr+3);
+    }
+  });
 
-  // Área rellena
-  const pts=fechas.map((f,i)=>[PAD.l+cW*(i/(fechas.length-1||1)),PAD.t+cH-(cH*(vals[i]/maxV))]);
+  const pts=lotesArr.map((l,i)=>[PAD.l+cW*(i/(n-1||1)),PAD.t+cH-(cH*(vals[i]/maxV))]);
+
+  // Área
   ctx.beginPath();
   ctx.moveTo(pts[0][0],PAD.t+cH);
   pts.forEach(([x,y])=>ctx.lineTo(x,y));
   ctx.lineTo(pts[pts.length-1][0],PAD.t+cH);
   ctx.closePath();
-  ctx.fillStyle='rgba(123,16,16,.08)';ctx.fill();
+  ctx.fillStyle='rgba(107,26,42,.07)';ctx.fill();
 
   // Línea
-  ctx.beginPath();ctx.strokeStyle='#7b1010';ctx.lineWidth=2;
+  ctx.beginPath();ctx.strokeStyle='#6B1A2A';ctx.lineWidth=2;ctx.setLineDash([]);
   pts.forEach(([x,y],i)=>i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
   ctx.stroke();
 
-  // Puntos
+  // Puntos con color por severidad
   pts.forEach(([x,y],i)=>{
+    const v=vals[i];
+    const col=v<0.56?'#2d8c4e':v<=0.89?'#b06200':'#c0392b';
     ctx.beginPath();ctx.arc(x,y,4,0,2*Math.PI);
-    ctx.fillStyle='#7b1010';ctx.fill();
+    ctx.fillStyle=col;ctx.fill();
     ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
-    // Fecha
-    if(fechas.length<=12||i%(Math.ceil(fechas.length/8))===0){
-      ctx.fillStyle='#6b6558';ctx.font='9px sans-serif';ctx.textAlign='center';
-      ctx.fillText(fechas[i].substring(5),x,H-PAD.b+14);
+    if(n<=15||i%(Math.ceil(n/10))===0){
+      ctx.fillStyle='#6b5558';ctx.font='8px sans-serif';ctx.textAlign='center';
+      ctx.fillText(fechas[i].substring(5),x,H-PAD.b+12);
     }
+  });
+
+  // Tooltip al hover
+  el._data={pts,vals,fechas,granjas};
+  el.onmousemove=function(e){
+    const rect=el.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(el.width/rect.width);
+    const my=(e.clientY-rect.top)*(el.height/rect.height);
+    let closest=-1,minD=20;
+    pts.forEach(([px,py],i)=>{const d=Math.hypot(mx-px,my-py);if(d<minD){minD=d;closest=i;}});
+    el._hover=closest;
+    // Redibujar solo el punto destacado
+    dibujarLinea();
+    if(closest>=0){
+      const [px,py]=pts[closest];
+      ctx.fillStyle='rgba(26,24,20,.85)';
+      const txt=`${granjas[closest]} · ${fechas[closest].substring(5)} · IDN ${vals[closest].toFixed(3)}`;
+      ctx.font='11px sans-serif';
+      const tw=ctx.measureText(txt).width+16;
+      const tx=Math.min(px-tw/2,W-tw-4);
+      ctx.beginPath();if(ctx.roundRect)ctx.roundRect(tx,py-28,tw,20,4);else ctx.rect(tx,py-28,tw,20);ctx.fill();
+      ctx.fillStyle='#fff';ctx.textAlign='left';ctx.fillText(txt,tx+8,py-14);
+    }
+  };
+  el.onmouseleave=()=>{el._hover=-1;};
+}
+
+function dibujarMensual(){
+  // IDN por mes: agrupar lotes por YYYY-MM, calcular IDN de cada lote, promediar
+  const lotesMap={};
+  filteredData.forEach(d=>{
+    const key=(d.granja_nombre||'')+'_'+(d.consecutivo||'');
+    if(!lotesMap[key]){
+      const f=(d.fecha_inspeccion||'').split('T')[0];
+      lotesMap[key]={ct:0,tce:0,mes:f.substring(0,7)};
+    }
+    lotesMap[key].ct+=parseInt(d.categoria)||0;
+    lotesMap[key].tce++;
+  });
+
+  const porMes={};
+  Object.values(lotesMap).forEach(l=>{
+    if(!l.mes)return;
+    const idn=l.tce>0?l.ct/l.tce:0;
+    if(!porMes[l.mes]){porMes[l.mes]={sum:0,cnt:0};}
+    porMes[l.mes].sum+=idn;
+    porMes[l.mes].cnt++;
+  });
+
+  const meses=Object.keys(porMes).sort();
+  const vals=meses.map(m=>porMes[m].sum/porMes[m].cnt);
+
+  const el=document.getElementById('ch-mensual');
+  if(!el)return;
+  const W=el.parentElement.clientWidth-32||800, H=180;
+  el.width=W; el.height=H;
+  const ctx=el.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  if(!meses.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
+
+  const PAD={t:14,r:60,b:36,l:45};
+  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
+  const maxV=Math.max(...vals,0.5);
+  const barW=Math.min(36,cW/meses.length*0.6);
+  const gap=cW/meses.length;
+
+  // Grilla
+  ctx.strokeStyle='#ede4e7';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=PAD.t+cH-(cH*i/4);
+    ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
+    ctx.fillStyle='#9e878c';ctx.font='9px monospace';ctx.textAlign='right';
+    ctx.fillText((maxV*i/4).toFixed(2),PAD.l-4,y+3);
+  }
+  // Referencia 0.9
+  if(0.9<=maxV){
+    const yr=PAD.t+cH-(cH*(0.9/maxV));
+    ctx.strokeStyle='#c0392b';ctx.lineWidth=0.8;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(PAD.l,yr);ctx.lineTo(PAD.l+cW,yr);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#c0392b';ctx.font='8px sans-serif';ctx.textAlign='left';
+    ctx.fillText('Sev.',PAD.l+cW+2,yr+3);
+  }
+
+  // Barras
+  meses.forEach((m,i)=>{
+    const v=vals[i];
+    const col=v<0.56?'#2d8c4e':v<=0.89?'#b06200':'#c0392b';
+    const x=PAD.l+gap*i+gap/2-barW/2;
+    const bh=Math.max(2,cH*(v/maxV));
+    const y=PAD.t+cH-bh;
+    ctx.fillStyle=col;
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x,y,barW,bh,3);else ctx.rect(x,y,barW,bh);
+    ctx.fill();
+    ctx.fillStyle='#1a1814';ctx.font='9px monospace';ctx.textAlign='center';
+    ctx.fillText(v.toFixed(2),x+barW/2,y-3);
+    // Mes abreviado
+    const [yr2,mo]=m.split('-');
+    const nombres=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    ctx.fillStyle='#6b5558';ctx.font='9px sans-serif';
+    ctx.fillText(nombres[parseInt(mo)]+" '"+yr2.substring(2),x+barW/2,H-PAD.b+12);
   });
 }
 
@@ -760,27 +916,42 @@ function actualizarTablas(){
     </tr>`;
   });
 
-  // Detalle
+  // Detalle por consecutivo (agrupado)
   const tbD=document.getElementById('tbody-d');
   tbD.innerHTML='';
-  if(!filteredData.length){tbD.innerHTML='<tr><td colspan="10" class="no-data">Sin datos</td></tr>';return;}
-  [...filteredData].sort((a,b)=>(a.fecha_inspeccion||'')<(b.fecha_inspeccion||'')?-1:1).forEach(d=>{
+  if(!filteredData.length){tbD.innerHTML='<tr><td colspan="9" class="no-data">Sin datos</td></tr>';return;}
+  // Agrupar por granja+consecutivo
+  const porLote={};
+  filteredData.forEach(d=>{
+    const key=(d.granja_nombre||'')+'|||'+(d.consecutivo||'');
+    if(!porLote[key]){
+      const f=(d.fecha_inspeccion||'').split('T')[0];
+      porLote[key]={granja:d.granja_nombre||'',consec:d.consecutivo||'—',fecha:f,ct:0,tce:0,neum:0,pleur:0,gdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0}};
+    }
+    const l=porLote[key];
+    l.ct+=parseInt(d.categoria)||0;
+    l.tce++;
+    const cat=parseInt(d.categoria)||0;
+    if(cat>0&&(parseFloat(d.consolidacion_total)||0)>0)l.neum++;
+    if(d.pleuritis_total)l.pleur++;
+    l.gdp+=parseFloat(d.perdida_gdp_kg)||0;
     const consol=parseFloat(d.consolidacion_total)||0;
-    let sev='Sin',sc='sev-0';
-    if(consol>0&&consol<=10){sev='Leve';sc='sev-1';}
-    else if(consol>10&&consol<=30){sev='Moderada';sc='sev-2';}
-    else if(consol>30){sev='Severa';sc='sev-3';}
+    if(consol<=0)l.sevs.Sin++;else if(consol<=10)l.sevs.Leve++;else if(consol<=30)l.sevs.Moderada++;else l.sevs.Severa++;
+  });
+  Object.values(porLote).sort((a,b)=>a.fecha<b.fecha?-1:1).forEach(l=>{
+    const idn=l.tce>0?l.ct/l.tce:0;
+    const sevP=Object.entries(l.sevs).sort((a,b)=>b[1]-a[1])[0][0];
+    const sc={Sin:'sev-0',Leve:'sev-1',Moderada:'sev-2',Severa:'sev-3'}[sevP];
     tbD.innerHTML+=`<tr>
-      <td>${GRANJA_VISTA[(d.granja_nombre||'').toUpperCase()]||d.granja_nombre||'—'}</td>
-      <td class="td-num">${d.consecutivo||'—'}</td>
-      <td class="td-num">${d.orden||'—'}</td>
-      <td>${(d.fecha_inspeccion||'').split('T')[0]||'—'}</td>
-      <td class="td-num">—</td>
-      <td class="td-num">${(parseFloat(d.consolidacion_total)||0).toFixed(1)}%</td>
-      <td class="td-num">${d.categoria||0}</td>
-      <td>${d.pleuritis_total?'<span style="color:var(--red);font-weight:500">Sí</span>':'No'}</td>
-      <td class="td-num">${(parseFloat(d.perdida_gdp_kg)||0).toFixed(3)}</td>
-      <td><span class="td-badge ${sc}">${sev}</span></td>
+      <td><strong>${GRANJA_VISTA[l.granja.toUpperCase()]||l.granja||'—'}</strong></td>
+      <td class="td-num">${l.consec}</td>
+      <td>${l.fecha||'—'}</td>
+      <td class="td-num">${l.tce}</td>
+      <td class="td-num"><strong>${idn.toFixed(4)}</strong></td>
+      <td class="td-num">${Math.round(l.neum/l.tce*100)}%</td>
+      <td class="td-num">${Math.round(l.pleur/l.tce*100)}%</td>
+      <td class="td-num">${l.gdp.toFixed(1)}</td>
+      <td><span class="td-badge ${sc}">${sevP}</span></td>
     </tr>`;
   });
 }
