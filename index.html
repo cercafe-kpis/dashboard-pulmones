@@ -429,11 +429,11 @@ async function cargarDatos(){
       items=[...items,...(d.value||[])];
       url=d['@odata.nextLink']||null;
     }
-    const rawFields=items.map(i=>i.fields).filter(Boolean);
+    const rawFields=items.map(i=>({...i.fields, _spId:i.id})).filter(Boolean);
     // Deduplicar por granja_nombre + consecutivo + orden (clave única por cerdo)
     const seen=new Set();
     allData=rawFields.filter(d=>{
-      const key=(d.granja_nombre||'')+'|'+(d.consecutivo||'')+'|'+(d.orden||'');
+      const key=d._spId||(( d.granja_nombre||'')+'|'+(d.consecutivo||'')+'|'+(d.orden||''));
       if(seen.has(key))return false;
       seen.add(key);
       return true;
