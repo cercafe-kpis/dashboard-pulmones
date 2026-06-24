@@ -577,7 +577,6 @@ function limpiarCanvas(id){
 }
 
 function dibujarBarras(){
-  // IDN por granja = promedio de CT/TCE por cada lote de esa granja
   const porG={};
   filteredData.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
@@ -594,50 +593,73 @@ function dibujarBarras(){
     const idns=lotes.map(l=>l.tce>0?l.ct/l.tce:0);
     return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
   });
-  // Color basado en IDN (escala 0-6, no 0-1)
   const colors=vals.map(v=>v<0.56?'#2d8c4e':v<=0.89?'#c07a20':v<=1.5?'#c06000':'#c0392b');
 
   const el=document.getElementById('ch-granjas');
-  const W=el.parentElement.clientWidth-32||400, H=220;
+  const n=labels.length||1;
+
+  // Altura dinámica: base + espacio para nombres diagonales
+  const LBL_H=70;
+  const BAR_ZONE=200;
+  const H=BAR_ZONE+LBL_H;
+  const W=Math.max(el.parentElement.clientWidth-32||500, n*52);
   el.width=W; el.height=H;
+  el.style.width='100%';
+  el.style.height=H+'px';
+
   const ctx=el.getContext('2d');
   ctx.clearRect(0,0,W,H);
 
-  const displayLabels=labelsVista||labels;
-  if(!labels.length){ctx.fillStyle='#9e9589';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
+  if(!labels.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
 
-  const PAD={t:10,r:10,b:50,l:40};
-  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
-  const maxV=Math.max(...vals,0.1);
-  const barW=Math.min(40,cW/labels.length*.7);
-  const gap=cW/labels.length;
+  const PAD={t:24,r:16,b:LBL_H,l:46};
+  const cW=W-PAD.l-PAD.r, cH=BAR_ZONE-PAD.t;
+  const maxV=Math.max(...vals,0.5)*1.08; // margen arriba
+  const gap=cW/n;
+  const barW=Math.max(12,Math.min(38,gap*0.55));
 
-  // Eje Y
-  ctx.strokeStyle='#e8e3da';ctx.lineWidth=1;
+  // Grilla
+  ctx.strokeStyle='#ede4e7';ctx.lineWidth=1;
   for(let i=0;i<=5;i++){
     const y=PAD.t+cH-(cH*i/5);
     ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
-    ctx.fillStyle='#9e9589';ctx.font='10px monospace';ctx.textAlign='right';
+    ctx.fillStyle='#9e878c';ctx.font='9px monospace';ctx.textAlign='right';
     ctx.fillText((maxV*i/5).toFixed(2),PAD.l-4,y+3);
   }
 
+  // Línea de referencia IDN red (cercafeStats)
+  if(cercafeStats){
+    const yRef=PAD.t+cH-(cH*(cercafeStats.idn/maxV));
+    ctx.strokeStyle='#6B1A2A';ctx.lineWidth=1.2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(PAD.l,yRef);ctx.lineTo(PAD.l+cW,yRef);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#6B1A2A';ctx.font='bold 9px sans-serif';ctx.textAlign='left';
+    ctx.fillText('Cercafe '+cercafeStats.idn.toFixed(3),PAD.l+4,yRef-3);
+  }
+
   // Barras
-  displayLabels.forEach((lbl,i)=>{
+  labels.forEach((lbl,i)=>{
+    const vista=labelsVista[i];
     const x=PAD.l+gap*i+gap/2-barW/2;
-    const barH=cH*(vals[i]/maxV);
-    const y=PAD.t+cH-barH;
+    const bh=Math.max(2,cH*(vals[i]/maxV));
+    const y=PAD.t+cH-bh;
     ctx.fillStyle=colors[i];
     ctx.beginPath();
-    if(ctx.roundRect){ctx.roundRect(x,y,barW,barH,4);}
-    else{ctx.rect(x,y,barW,barH);}
+    if(ctx.roundRect)ctx.roundRect(x,y,barW,bh,3);
+    else ctx.rect(x,y,barW,bh);
     ctx.fill();
-    // Etiqueta
-    ctx.fillStyle='#6b6558';ctx.font='9px sans-serif';ctx.textAlign='center';
-    const shortLbl=lbl.length>8?lbl.substring(0,8)+'…':lbl;
-    ctx.fillText(shortLbl,x+barW/2,H-PAD.b+14);
-    // Valor
-    ctx.fillStyle='#1a1814';ctx.font='10px monospace';
-    ctx.fillText(vals[i].toFixed(3),x+barW/2,y-3);
+
+    // Valor encima de barra
+    ctx.fillStyle='#1a1814';ctx.font='bold 9px monospace';ctx.textAlign='center';
+    ctx.fillText(vals[i].toFixed(3),x+barW/2,y-4);
+
+    // Nombre diagonal
+    ctx.save();
+    ctx.translate(x+barW/2, PAD.t+cH+8);
+    ctx.rotate(-Math.PI/4);
+    ctx.fillStyle='#4a3035';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillText(vista,0,0);
+    ctx.restore();
   });
 }
 
