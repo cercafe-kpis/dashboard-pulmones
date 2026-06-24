@@ -101,7 +101,7 @@ th{padding:.6rem .9rem;text-align:left;font-size:10px;font-weight:700;color:var(
 td{padding:.55rem .9rem;border-bottom:1px solid var(--borderl);color:var(--text);}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#faf9f6;}
-.td-num{font-family:var(--mono);font-size:12px;text-align:right;}
+.td-num{font-family:var(--mono);font-size:13px;color:#1a1814;text-align:right;}
 .td-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
 .sev-0{background:var(--gl);color:var(--g);}
 .sev-1{background:#eef2f8;color:#2a3a5c;}
@@ -908,19 +908,18 @@ function dibujarMensual(){
 }
 
 function actualizarTablas(){
-  // Por granja
+  // Por granja — IDN correcto: promedio de CT/TCE por lote
   const porG={};
   filteredData.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
-    if(!porG[g])porG[g]={lotes:new Set(),lotes2:{},n:0,sumIdn:0,neum:0,pleur:0,sumGdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0}};
+    if(!porG[g])porG[g]={lotes:{},n:0,neum:0,pleur:0,sumGdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0}};
     const pg=porG[g];
-    pg.lotes.add(d.consecutivo);pg.n++;
-    // Acumular CT/TCE por lote
-    if(!pg.lotes2[d.consecutivo])pg.lotes2[d.consecutivo]={ct:0,tce:0};
-    pg.lotes2[d.consecutivo].ct+=parseInt(d.categoria)||0;
-    pg.lotes2[d.consecutivo].tce++;
-    const idn=parseFloat(d.consolidacion_total)||0;
-    pg.sumIdn+=idn;
+    pg.n++;
+    // Acumular CT/TCE por lote (para IDN correcto)
+    const lk=d.consecutivo||'_';
+    if(!pg.lotes[lk])pg.lotes[lk]={ct:0,tce:0};
+    pg.lotes[lk].ct+=parseInt(d.categoria)||0;
+    pg.lotes[lk].tce++;
     const cat=parseInt(d.categoria)||0;
     if(cat>0&&(parseFloat(d.consolidacion_total)||0)>0)pg.neum++;
     if(d.pleuritis_total)pg.pleur++;
@@ -934,12 +933,15 @@ function actualizarTablas(){
   if(!Object.keys(porG).length){tbG.innerHTML='<tr><td colspan="8" class="no-data">Sin datos</td></tr>';return;}
   Object.keys(porG).sort().forEach(g=>{
     const pg=porG[g];
-    const idn=(pg.sumIdn/pg.n).toFixed(4);
+    // IDN = promedio de (CT/TCE) de cada lote de la granja
+    const lotesArr=Object.values(pg.lotes);
+    const idnVal=lotesArr.length>0?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
+    const idn=idnVal.toFixed(4);
     const sevP=Object.entries(pg.sevs).sort((a,b)=>b[1]-a[1])[0][0];
     const sc={Sin:'sev-0',Leve:'sev-1',Moderada:'sev-2',Severa:'sev-3'}[sevP];
     tbG.innerHTML+=`<tr>
       <td><strong>${GRANJA_VISTA[g.toUpperCase()]||g}</strong></td>
-      <td class="td-num">${pg.lotes.size}</td>
+      <td class="td-num">${Object.keys(pg.lotes).length}</td>
       <td class="td-num">${pg.n}</td>
       <td class="td-num">${idn}</td>
       <td class="td-num">${Math.round(pg.neum/pg.n*100)}%</td>
