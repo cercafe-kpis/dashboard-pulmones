@@ -408,7 +408,7 @@ async function cargarDatos(){
   try{
     await resolverSP();
     const tok=await getToken();
-    let url=`https://graph.microsoft.com/v1.0/sites/${spSiteId}/lists/${spListId}/items?expand=fields&$top=5000`;
+    let url=`https://graph.microsoft.com/v1.0/sites/${spSiteId}/lists/${spListId}/items?expand=fields&$top=5000&$filter=fields/granja_nombre ne null`;
     let items=[];
     while(url){
       const r=await fetch(url,{headers:{Authorization:`Bearer ${tok}`}});
