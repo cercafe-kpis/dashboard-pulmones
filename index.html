@@ -8,9 +8,9 @@
 <style>
 :root{
   --g:#6B1A2A;--gd:#4e1220;--gl:#f8eff1;--gm:#8a2237;
-  --red:#c0392b;--redl:#fdf0f0;
+  --red:#9e2a2a;--redl:#fdf0f0;
   --blue:#185fa5;--bluel:#edf4fc;
-  --amber:#b07a00;--amberl:#fffbe6;--mod:#2176c7;--modl:#e8f4ff;
+  --amber:#b07a00;--amberl:#fdf0e4;--mod:#4a6491;--modl:#eef2f8;
   --green:#1a6b3c;--greenl:#edf7f2;
   --border:#d4c8cc;--borderl:#ede4e7;
   --bg:#f5f0f1;--card:#fff;--surface:#fdf8f9;
@@ -104,8 +104,8 @@ tr:hover td{background:#faf9f6;}
 .td-num{font-family:var(--mono);font-size:12px;text-align:right;}
 .td-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
 .sev-0{background:var(--gl);color:var(--g);}
-.sev-1{background:#e8f4ff;color:#1a5fa8;}
-.sev-2{background:#fffbe6;color:#7a5200;}
+.sev-1{background:#eef2f8;color:#2a3a5c;}
+.sev-2{background:#fdf0e4;color:#6b3d0f;}
 .sev-3{background:var(--redl);color:var(--red);}
 
 /* MINI CARDS lesiones */
@@ -593,7 +593,7 @@ function dibujarBarras(){
     const idns=lotes.map(l=>l.tce>0?l.ct/l.tce:0);
     return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
   });
-  const colors=vals.map(v=>v<0.56?'#2d8c4e':v<=0.89?'#2176c7':v<=1.5?'#e0a800':'#c0392b');
+  const colors=vals.map(v=>v<0.56?'#257a65':v<=0.89?'#4a6491':v<=1.5?'#b06020':'#9e2a2a');
 
   const el=document.getElementById('ch-granjas');
   const n=labels.length||1;
@@ -623,7 +623,7 @@ function dibujarBarras(){
   for(let i=0;i<=5;i++){
     const y=PAD.t+cH-(cH*i/5);
     ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
-    ctx.fillStyle='#9e878c';ctx.font='9px monospace';ctx.textAlign='right';
+    ctx.fillStyle='#444';ctx.font='10px monospace';ctx.textAlign='right';
     ctx.fillText((maxV*i/5).toFixed(2),PAD.l-4,y+3);
   }
 
@@ -650,14 +650,14 @@ function dibujarBarras(){
     ctx.fill();
 
     // Valor encima de barra
-    ctx.fillStyle='#1a1814';ctx.font='bold 9px monospace';ctx.textAlign='center';
+    ctx.fillStyle='#1a1814';ctx.font='bold 11px monospace';ctx.textAlign='center';
     ctx.fillText(vals[i].toFixed(3),x+barW/2,y-4);
 
     // Nombre diagonal
     ctx.save();
     ctx.translate(x+barW/2, PAD.t+cH+8);
     ctx.rotate(-Math.PI/4);
-    ctx.fillStyle='#4a3035';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillStyle='#1a1814';ctx.font='12px sans-serif';ctx.textAlign='right';
     ctx.fillText(vista,0,0);
     ctx.restore();
   });
@@ -680,7 +680,7 @@ function dibujarDona(){
   ctx.clearRect(0,0,W,H);
 
   const total=Object.values(sevs).reduce((s,v)=>s+v,0)||1;
-  const colores=['#2d8c4e','#2176c7','#e0a800','#c0392b'];
+  const colores=['#257a65','#4a6491','#b06020','#9e2a2a'];
   const etiquetas=Object.keys(sevs);
   const valores=Object.values(sevs);
 
@@ -756,11 +756,11 @@ function dibujarLinea(){
   for(let i=0;i<=4;i++){
     const y=PAD.t+cH-(cH*i/4);
     ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
-    ctx.fillStyle='#9e878c';ctx.font='9px monospace';ctx.textAlign='right';
+    ctx.fillStyle='#444';ctx.font='10px monospace';ctx.textAlign='right';
     ctx.fillText((maxV*i/4).toFixed(2),PAD.l-4,y+3);
   }
   // Líneas de referencia
-  ['#2d8c4e','#b06200','#c0392b'].forEach((col,idx)=>{
+  ['#257a65','#b06200','#9e2a2a'].forEach((col,idx)=>{
     const ref=[0,0.56,0.9][idx];
     if(ref<=maxV){
       const yr=PAD.t+cH-(cH*(ref/maxV));
@@ -790,12 +790,12 @@ function dibujarLinea(){
   // Puntos con color por severidad
   pts.forEach(([x,y],i)=>{
     const v=vals[i];
-    const col=v<0.56?'#2d8c4e':v<=0.89?'#2176c7':v<=1.5?'#e0a800':'#c0392b';
+    const col=v<0.56?'#257a65':v<=0.89?'#4a6491':v<=1.5?'#b06020':'#9e2a2a';
     ctx.beginPath();ctx.arc(x,y,4,0,2*Math.PI);
     ctx.fillStyle=col;ctx.fill();
     ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
     if(n<=15||i%(Math.ceil(n/10))===0){
-      ctx.fillStyle='#6b5558';ctx.font='8px sans-serif';ctx.textAlign='center';
+      ctx.fillStyle='#1a1814';ctx.font='11px sans-serif';ctx.textAlign='center';
       ctx.fillText(fechas[i].substring(5),x,H-PAD.b+12);
     }
   });
@@ -870,23 +870,23 @@ function dibujarMensual(){
   for(let i=0;i<=4;i++){
     const y=PAD.t+cH-(cH*i/4);
     ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
-    ctx.fillStyle='#9e878c';ctx.font='9px monospace';ctx.textAlign='right';
+    ctx.fillStyle='#444';ctx.font='10px monospace';ctx.textAlign='right';
     ctx.fillText((maxV*i/4).toFixed(2),PAD.l-4,y+3);
   }
   // Referencia 0.9
   if(0.9<=maxV){
     const yr=PAD.t+cH-(cH*(0.9/maxV));
-    ctx.strokeStyle='#c0392b';ctx.lineWidth=0.8;ctx.setLineDash([4,3]);
+    ctx.strokeStyle='#9e2a2a';ctx.lineWidth=0.8;ctx.setLineDash([4,3]);
     ctx.beginPath();ctx.moveTo(PAD.l,yr);ctx.lineTo(PAD.l+cW,yr);ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='#c0392b';ctx.font='8px sans-serif';ctx.textAlign='left';
+    ctx.fillStyle='#9e2a2a';ctx.font='8px sans-serif';ctx.textAlign='left';
     ctx.fillText('Sev.',PAD.l+cW+2,yr+3);
   }
 
   // Barras
   meses.forEach((m,i)=>{
     const v=vals[i];
-    const col=v<0.56?'#2d8c4e':v<=0.89?'#b06200':'#c0392b';
+    const col=v<0.56?'#257a65':v<=0.89?'#b06200':'#9e2a2a';
     const x=PAD.l+gap*i+gap/2-barW/2;
     const bh=Math.max(2,cH*(v/maxV));
     const y=PAD.t+cH-bh;
@@ -894,12 +894,12 @@ function dibujarMensual(){
     ctx.beginPath();
     if(ctx.roundRect)ctx.roundRect(x,y,barW,bh,3);else ctx.rect(x,y,barW,bh);
     ctx.fill();
-    ctx.fillStyle='#1a1814';ctx.font='9px monospace';ctx.textAlign='center';
+    ctx.fillStyle='#1a1814';ctx.font='bold 11px monospace';ctx.textAlign='center';
     ctx.fillText(v.toFixed(2),x+barW/2,y-3);
     // Mes abreviado
     const [yr2,mo]=m.split('-');
     const nombres=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    ctx.fillStyle='#6b5558';ctx.font='9px sans-serif';
+    ctx.fillStyle='#1a1814';ctx.font='11px sans-serif';
     ctx.fillText(nombres[parseInt(mo)]+" '"+yr2.substring(2),x+barW/2,H-PAD.b+12);
   });
 }
@@ -1071,7 +1071,7 @@ function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
       <div style="background:var(--surface);border:1px solid var(--borderl);border-radius:var(--rs);padding:12px;border-left:3px solid ${colorIdn};">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">Recomendación</div>
         <div style="font-size:13px;line-height:1.6;color:var(--text);">${recIdn}</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--hint);">Escala IDN: <span style="color:#2d8c4e;font-weight:500">Leve &lt;0.56</span> · <span style="color:#d4520a;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:var(--red);font-weight:500">Severo &gt;0.9</span></div>
+        <div style="margin-top:10px;font-size:11px;color:var(--hint);">Escala IDN: <span style="color:#257a65;font-weight:500">Leve &lt;0.56</span> · <span style="color:#d4520a;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:var(--red);font-weight:500">Severo &gt;0.9</span></div>
       </div>
     </div>`;
 }
@@ -1086,9 +1086,9 @@ function generarAnalisis(kpis, n){
   const gdp=document.getElementById('k-gdp').textContent;
 
   let sevIdn='',sevConsol='',recIdn='';
-  if(idn<0.56){sevIdn='<span style="color:#2d8c4e;font-weight:600">LEVE</span>';recIdn='Los resultados son satisfactorios. Mantener el plan vacunal actual y continuar monitoreo periódico.';}
+  if(idn<0.56){sevIdn='<span style="color:#257a65;font-weight:600">LEVE</span>';recIdn='Los resultados son satisfactorios. Mantener el plan vacunal actual y continuar monitoreo periódico.';}
   else if(idn<=0.89){sevIdn='<span style="color:#c07a20;font-weight:600">MODERADO</span>';recIdn='Neumonía presente pero no constituye amenaza grave. Revisar factores de riesgo, densidad, ventilación y vacunación.';}
-  else{sevIdn='<span style="color:#c0392b;font-weight:600">SEVERO</span>';recIdn='Neumonía grave. Se recomienda revisión urgente del plan vacunal, condiciones de bioseguridad y manejo sanitario.';}
+  else{sevIdn='<span style="color:#9e2a2a;font-weight:600">SEVERO</span>';recIdn='Neumonía grave. Se recomienda revisión urgente del plan vacunal, condiciones de bioseguridad y manejo sanitario.';}
 
   if(consol<=10)sevConsol='Baja consolidación pulmonar.';
   else if(consol<=25)sevConsol='Consolidación moderada — revisar patógenos respiratorios.';
@@ -1146,8 +1146,8 @@ function imprimirPDF(){
     {lbl:'Cerdos evaluados',  val:n,                                           color:'#1a1814'},
     {lbl:'IDN (CT/TCE)',      val:document.getElementById('k-idn').textContent, color:'#7b1010'},
     {lbl:'% Consolidación',   val:document.getElementById('k-consol').textContent,color:'#7b1010'},
-    {lbl:'Frec. Neumonía',    val:document.getElementById('k-neum').textContent, color:'#c0392b'},
-    {lbl:'Pérdidas GDP',      val:document.getElementById('k-gdp').textContent,  color:'#2176c7'},
+    {lbl:'Frec. Neumonía',    val:document.getElementById('k-neum').textContent, color:'#9e2a2a'},
+    {lbl:'Pérdidas GDP',      val:document.getElementById('k-gdp').textContent,  color:'#4a6491'},
     {lbl:'Frec. Pleuritis',   val:document.getElementById('k-pleur').textContent, color:'#185fa5'},
   ];
 
