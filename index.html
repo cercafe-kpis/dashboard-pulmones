@@ -111,8 +111,8 @@ tr:hover td{background:#faf9f6;}
 /* MINI CARDS lesiones */
 .mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.55rem .8rem;height:82px;display:flex;flex-direction:column;}
 .mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.2;margin-top:auto;}
-.mini-card .mc-val{font-size:12px;font-weight:600;font-family:var(--mono);line-height:1.2;white-space:nowrap;}
-.mini-card .mc-val .mc-n{font-size:16px;font-weight:600;}
+.mini-card .mc-val{font-size:12px;font-weight:600;font-family:var(--mono);line-height:1.2;white-space:nowrap;display:flex;align-items:baseline;gap:3px;}
+.mini-card .mc-val .mc-n{font-size:15px;font-weight:600;}
 .mini-card.les .mc-val{color:#257a65;}
 .mini-card.art .mc-val{color:#4a6491;}
 .no-data{text-align:center;padding:2.5rem;color:var(--hint);font-size:13px;}
@@ -241,14 +241,14 @@ const CONFIG={
           <div class="kpi-sub" style="color:rgba(255,255,255,.7);">cerdos</div>
         </div>
         <div style="flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:8px;">
-          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span><br><span class="mc-pct" id="k-nint-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span><br><span class="mc-pct" id="k-absc-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span><br><span class="mc-pct" id="k-nodu-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span><br><span class="mc-pct" id="k-peri-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span><br><span class="mc-pct" id="k-manc-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span><br><span class="mc-pct" id="k-agua-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span><br><span class="mc-pct" id="k-sang-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span><br><span class="mc-pct" id="k-pete-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span><span class="mc-pct" id="k-nint-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span><span class="mc-pct" id="k-absc-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span><span class="mc-pct" id="k-nodu-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span><span class="mc-pct" id="k-peri-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span><span class="mc-pct" id="k-manc-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span><span class="mc-pct" id="k-agua-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span><span class="mc-pct" id="k-sang-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span><span class="mc-pct" id="k-pete-p">—</span></div></div>
         </div>
       </div>
 
@@ -360,8 +360,8 @@ function calcCercafeStats(){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('cr-idn', idn.toFixed(4));
   set('cr-consol', pctConsol.toFixed(2)+'%');
-  set('cr-neum', Math.round(neum/n*100)+'%');
-  set('cr-pleur', Math.round(pleur/n*100)+'%');
+  set('cr-neum', (neum/n*100).toFixed(1)+'%');
+  set('cr-pleur', (pleur/n*100).toFixed(1)+'%');
 }
 
 async function doLogin(){
@@ -541,9 +541,9 @@ function actualizarKPIs(){
   document.getElementById('k-consol-sub').textContent='promedio de '+filteredData.length+' cerdos';
   const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
   document.getElementById('k-gdp').textContent=gdp.toFixed(1)+' kg';
-  document.getElementById('k-neum').textContent=neum+' ('+Math.round(neum/n*100)+'%)';
+  document.getElementById('k-neum').textContent=neum+' ('+(neum/n*100).toFixed(1)+'%)';
   document.getElementById('k-neum-sub').textContent='de '+n+' inspeccionados';
-  document.getElementById('k-pleur').textContent=pleur+' ('+Math.round(pleur/n*100)+'%)';
+  document.getElementById('k-pleur').textContent=pleur+' ('+(pleur/n*100).toFixed(1)+'%)';
   document.getElementById('k-pleur-sub').textContent='de '+n+' inspeccionados';
 
   // Análisis en dashboard
@@ -560,7 +560,7 @@ function actualizarKPIs(){
   };
   Object.entries(todasLes).forEach(([key,campo])=>{
     const cnt=filteredData.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
-    const pct=Math.round(cnt/n*100);
+    const pct=(cnt/n*100).toFixed(1);
     const nEl=document.getElementById('k-'+key+'-n');
     const pEl=document.getElementById('k-'+key+'-p');
     const sEl=document.getElementById('k-'+key+'-sub');
@@ -944,8 +944,8 @@ function actualizarTablas(){
       <td class="td-num">${Object.keys(pg.lotes).length}</td>
       <td class="td-num">${pg.n}</td>
       <td class="td-num">${idn}</td>
-      <td class="td-num">${Math.round(pg.neum/pg.n*100)}%</td>
-      <td class="td-num">${Math.round(pg.pleur/pg.n*100)}%</td>
+      <td class="td-num">${(pg.neum/pg.n*100).toFixed(1)}%</td>
+      <td class="td-num">${(pg.pleur/pg.n*100).toFixed(1)}%</td>
       <td class="td-num">${pg.sumGdp.toFixed(1)}</td>
       <td><span class="td-badge ${sc}">${sevP}</span></td>
     </tr>`;
@@ -983,8 +983,8 @@ function actualizarTablas(){
       <td>${l.fecha||'—'}</td>
       <td class="td-num">${l.tce}</td>
       <td class="td-num"><strong>${idn.toFixed(4)}</strong></td>
-      <td class="td-num">${Math.round(l.neum/l.tce*100)}%</td>
-      <td class="td-num">${Math.round(l.pleur/l.tce*100)}%</td>
+      <td class="td-num">${(l.neum/l.tce*100).toFixed(1)}%</td>
+      <td class="td-num">${(l.pleur/l.tce*100).toFixed(1)}%</td>
       <td class="td-num">${l.gdp.toFixed(1)}</td>
       <td><span class="td-badge ${sc}">${sevP}</span></td>
     </tr>`;
