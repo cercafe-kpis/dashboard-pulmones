@@ -408,7 +408,7 @@ async function cargarDatos(){
   try{
     await resolverSP();
     const tok=await getToken();
-    let url=`https://graph.microsoft.com/v1.0/sites/${spSiteId}/lists/${spListId}/items?expand=fields&$top=5000&$filter=fields/granja_nombre ne null`;
+    let url=`https://graph.microsoft.com/v1.0/sites/${spSiteId}/lists/${spListId}/items?expand=fields&$top=5000`;
     let items=[];
     while(url){
       const r=await fetch(url,{headers:{Authorization:`Bearer ${tok}`}});
@@ -416,7 +416,15 @@ async function cargarDatos(){
       items=[...items,...(d.value||[])];
       url=d['@odata.nextLink']||null;
     }
-    allData=items.map(i=>i.fields).filter(Boolean);
+    const rawFields=items.map(i=>i.fields).filter(Boolean);
+    // Deduplicar por granja_nombre + consecutivo + orden (clave única por cerdo)
+    const seen=new Set();
+    allData=rawFields.filter(d=>{
+      const key=(d.granja_nombre||'')+'|'+(d.consecutivo||'')+'|'+(d.orden||'');
+      if(seen.has(key))return false;
+      seen.add(key);
+      return true;
+    });
     poblarFiltros();
     calcCercafeStats();
     aplicarFiltros();
