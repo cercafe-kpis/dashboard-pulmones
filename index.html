@@ -113,8 +113,8 @@ tr:hover td{background:#faf9f6;}
 .mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.2;margin-top:auto;}
 .mini-card .mc-val{font-size:12px;font-weight:600;font-family:var(--mono);line-height:1.2;white-space:nowrap;}
 .mini-card .mc-val .mc-n{font-size:22px;font-weight:600;}
-.mini-card.les .mc-val{color:var(--g);}
-.mini-card.art .mc-val{color:var(--blue);}
+.mini-card.les .mc-val{color:#257a65;}
+.mini-card.art .mc-val{color:#4a6491;}
 .no-data{text-align:center;padding:2.5rem;color:var(--hint);font-size:13px;}
 
 /* PDF MODAL */
@@ -235,20 +235,20 @@ const CONFIG={
       <!-- TOTAL + OTRAS LESIONES -->
       <div class="sec">Otras lesiones y artefactos</div>
       <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:8px;">
-        <div class="kpi-card" style="min-width:130px;flex-shrink:0;background:var(--g);border-color:var(--g);">
-          <div class="kpi-lbl" style="color:rgba(255,255,255,.75);">Total inspeccionados</div>
+        <div class="kpi-card" style="min-width:130px;flex-shrink:0;background:var(--g);border-color:var(--g);justify-content:center;">
+          <div class="kpi-lbl" style="color:rgba(255,255,255,.85);">Total inspeccionados</div>
           <div class="kpi-val" style="color:#fff;font-size:32px;" id="k-total-n">—</div>
-          <div class="kpi-sub" style="color:rgba(255,255,255,.6);">cerdos</div>
+          <div class="kpi-sub" style="color:rgba(255,255,255,.7);">cerdos</div>
         </div>
         <div style="flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:8px;">
-          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span> <span id="k-nint-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span> <span id="k-absc-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span> <span id="k-nodu-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span> <span id="k-peri-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span> <span id="k-manc-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span> <span id="k-agua-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span> <span id="k-sang-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span> <span id="k-pete-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span><br><span class="mc-pct" id="k-nint-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span><br><span class="mc-pct" id="k-absc-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span><br><span class="mc-pct" id="k-nodu-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span><br><span class="mc-pct" id="k-peri-p">—</span></div></div>
+          <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span><br><span class="mc-pct" id="k-manc-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span><br><span class="mc-pct" id="k-agua-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span><br><span class="mc-pct" id="k-sang-p">—</span></div></div>
+          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span><br><span class="mc-pct" id="k-pete-p">—</span></div></div>
         </div>
       </div>
 
@@ -1182,9 +1182,9 @@ function imprimirPDF(){
     <!-- KPI CARDS -->
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px;">
       ${kpis.map(k=>`
-        <div style="border:1px solid #d4cfc4;border-radius:6px;padding:7px 6px;text-align:center;border-top:3px solid ${k.color};">
-          <div style="font-size:7.5pt;color:#6b6558;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">${k.lbl}</div>
-          <div style="font-size:13pt;font-weight:700;color:${k.color};font-family:monospace;">${k.val}</div>
+        <div style="border:1px solid #e0d8da;border-radius:6px;padding:8px 6px 6px;text-align:center;border-top:3px solid ${k.color};display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:68px;">
+          <div style="font-size:7pt;color:#6b5558;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;min-height:2.4em;display:flex;align-items:center;justify-content:center;">${k.lbl}</div>
+          <div style="font-size:14pt;font-weight:700;color:${k.color};font-family:monospace;line-height:1.1;margin-top:4px;">${k.val}</div>
         </div>`).join('')}
     </div>
 
@@ -1195,9 +1195,9 @@ function imprimirPDF(){
     <div style="margin-top:12px;margin-bottom:6px;font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;">Otras lesiones y artefactos</div>
     <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:12px;">
       ${lesiones.map(l=>`
-        <div style="border:1px solid #d4cfc4;border-radius:5px;padding:6px 4px;text-align:center;">
-          <div style="font-size:7pt;color:#6b6558;margin-bottom:2px;">${l.lbl}</div>
-          <div style="font-size:11pt;font-weight:700;color:#185fa5;font-family:monospace;">${l.val}</div>
+        <div style="border:1px solid #e0d8da;border-radius:5px;padding:7px 4px 5px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:58px;">
+          <div style="font-size:7pt;font-weight:600;color:#5a3a40;text-transform:uppercase;letter-spacing:.04em;line-height:1.25;min-height:2.2em;display:flex;align-items:flex-start;justify-content:center;">${l.lbl}</div>
+          <div style="font-size:12pt;font-weight:700;color:#4a6491;font-family:monospace;line-height:1;margin-top:4px;">${l.val}</div>
         </div>`).join('')}
     </div>
 
