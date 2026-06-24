@@ -577,17 +577,40 @@ function actualizarKPIs(){
   },100);
 
   // Otras lesiones
-  const todasLes={
+  // Lesiones normales: cuentan sobre todos los cerdos
+  const lesNormales={
     nint:'neumonia_intersticial', absc:'absceso_pulmon',
-    nodu:'nodulo_pulmon', peri:'pericarditis', manc:'manchas_leche',
-    agua:'artefacto_agua', sang:'artefacto_sangre', pete:'petequias'
+    nodu:'nodulo_pulmon', peri:'pericarditis', manc:'manchas_leche'
   };
-  Object.entries(todasLes).forEach(([key,campo])=>{
+  // Artefactos: solo cuentan en cerdos con pulmón sano (categoria=0 y consolidacion_total=0)
+  const sanos=filteredData.filter(d=>
+    (parseInt(d.categoria)||0)===0 &&
+    (parseFloat(d.consolidacion_total)||0)===0 &&
+    !(d.neumonia_intersticial===true||d.neumonia_intersticial===1||d.neumonia_intersticial==='true') &&
+    !(d.absceso_pulmon===true||d.absceso_pulmon===1||d.absceso_pulmon==='true') &&
+    !(d.nodulo_pulmon===true||d.nodulo_pulmon===1||d.nodulo_pulmon==='true') &&
+    !(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true') &&
+    !(d.manchas_leche===true||d.manchas_leche===1||d.manchas_leche==='true') &&
+    !(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true') &&
+    !(d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')
+  );
+  const nSanos=sanos.length;
+  const artefactos={agua:'artefacto_agua', sang:'artefacto_sangre', pete:'petequias'};
+
+  Object.entries(lesNormales).forEach(([key,campo])=>{
     const cnt=filteredData.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
     const pct=(cnt/n*100).toFixed(1);
     const nEl=document.getElementById('k-'+key+'-n');
     const pEl=document.getElementById('k-'+key+'-p');
-    const sEl=document.getElementById('k-'+key+'-sub');
+    if(nEl)nEl.textContent=cnt;
+    if(pEl)pEl.textContent='('+pct+'%)';
+  });
+
+  Object.entries(artefactos).forEach(([key,campo])=>{
+    const cnt=sanos.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
+    const pct=(cnt/n*100).toFixed(1);
+    const nEl=document.getElementById('k-'+key+'-n');
+    const pEl=document.getElementById('k-'+key+'-p');
     if(nEl)nEl.textContent=cnt;
     if(pEl)pEl.textContent='('+pct+'%)';
   });
