@@ -10,7 +10,7 @@
   --g:#6B1A2A;--gd:#4e1220;--gl:#f8eff1;--gm:#8a2237;
   --red:#c0392b;--redl:#fdf0f0;
   --blue:#185fa5;--bluel:#edf4fc;
-  --amber:#b06200;--amberl:#fdf3e4;
+  --amber:#b07a00;--amberl:#fffbe6;--mod:#2176c7;--modl:#e8f4ff;
   --green:#1a6b3c;--greenl:#edf7f2;
   --border:#d4c8cc;--borderl:#ede4e7;
   --bg:#f5f0f1;--card:#fff;--surface:#fdf8f9;
@@ -82,7 +82,7 @@ select:focus,input:focus{outline:none;border-color:var(--gm);}
 .cercafe-ref .cr-val{font-family:var(--mono);font-weight:600;color:var(--g);white-space:nowrap;font-size:15px;}
 .cercafe-ref .cr-lbl{opacity:.7;white-space:nowrap;}
 
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:1rem;}
 @media(max-width:800px){.charts-grid{grid-template-columns:1fr;}}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem;}
 .chart-card.full{grid-column:1/-1;}
@@ -104,8 +104,8 @@ tr:hover td{background:#faf9f6;}
 .td-num{font-family:var(--mono);font-size:12px;text-align:right;}
 .td-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
 .sev-0{background:var(--gl);color:var(--g);}
-.sev-1{background:var(--amberl);color:var(--amber);}
-.sev-2{background:#fff0e0;color:#8b5000;}
+.sev-1{background:#e8f4ff;color:#1a5fa8;}
+.sev-2{background:#fffbe6;color:#7a5200;}
 .sev-3{background:var(--redl);color:var(--red);}
 
 /* MINI CARDS lesiones */
@@ -263,11 +263,11 @@ const CONFIG={
       <div class="charts-grid">
         <div class="chart-card">
           <div class="chart-title">IDN promedio por granja</div>
-          <canvas id="ch-granjas" height="220"></canvas>
+          <canvas id="ch-granjas" height="320"></canvas>
         </div>
         <div class="chart-card">
           <div class="chart-title">Distribución de severidad</div>
-          <canvas id="ch-sev" height="220"></canvas>
+          <canvas id="ch-sev" height="180"></canvas>
         </div>
         <div class="chart-card full">
           <div class="chart-title">Evolución IDN por lote &nbsp;<span style="font-weight:400;color:var(--hint);font-size:11px">cada punto = un consecutivo</span></div>
@@ -593,14 +593,14 @@ function dibujarBarras(){
     const idns=lotes.map(l=>l.tce>0?l.ct/l.tce:0);
     return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
   });
-  const colors=vals.map(v=>v<0.56?'#2d8c4e':v<=0.89?'#c07a20':v<=1.5?'#c06000':'#c0392b');
+  const colors=vals.map(v=>v<0.56?'#2d8c4e':v<=0.89?'#2176c7':v<=1.5?'#e0a800':'#c0392b');
 
   const el=document.getElementById('ch-granjas');
   const n=labels.length||1;
 
   // Altura dinámica: base + espacio para nombres diagonales
-  const LBL_H=70;
-  const BAR_ZONE=200;
+  const LBL_H=80;
+  const BAR_ZONE=260;
   const H=BAR_ZONE+LBL_H;
   const W=Math.max(el.parentElement.clientWidth-32||500, n*52);
   el.width=W; el.height=H;
@@ -680,7 +680,7 @@ function dibujarDona(){
   ctx.clearRect(0,0,W,H);
 
   const total=Object.values(sevs).reduce((s,v)=>s+v,0)||1;
-  const colores=['#2d8c4e','#c07a20','#c06000','#c0392b'];
+  const colores=['#2d8c4e','#2176c7','#e0a800','#c0392b'];
   const etiquetas=Object.keys(sevs);
   const valores=Object.values(sevs);
 
@@ -790,7 +790,7 @@ function dibujarLinea(){
   // Puntos con color por severidad
   pts.forEach(([x,y],i)=>{
     const v=vals[i];
-    const col=v<0.56?'#2d8c4e':v<=0.89?'#b06200':'#c0392b';
+    const col=v<0.56?'#2d8c4e':v<=0.89?'#2176c7':v<=1.5?'#e0a800':'#c0392b';
     ctx.beginPath();ctx.arc(x,y,4,0,2*Math.PI);
     ctx.fillStyle=col;ctx.fill();
     ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
@@ -1071,7 +1071,7 @@ function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
       <div style="background:var(--surface);border:1px solid var(--borderl);border-radius:var(--rs);padding:12px;border-left:3px solid ${colorIdn};">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">Recomendación</div>
         <div style="font-size:13px;line-height:1.6;color:var(--text);">${recIdn}</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--hint);">Escala IDN: <span style="color:#2d8c4e;font-weight:500">Leve &lt;0.56</span> · <span style="color:var(--amber);font-weight:500">Moderado 0.56–0.89</span> · <span style="color:var(--red);font-weight:500">Severo &gt;0.9</span></div>
+        <div style="margin-top:10px;font-size:11px;color:var(--hint);">Escala IDN: <span style="color:#2d8c4e;font-weight:500">Leve &lt;0.56</span> · <span style="color:#d4520a;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:var(--red);font-weight:500">Severo &gt;0.9</span></div>
       </div>
     </div>`;
 }
@@ -1147,7 +1147,7 @@ function imprimirPDF(){
     {lbl:'IDN (CT/TCE)',      val:document.getElementById('k-idn').textContent, color:'#7b1010'},
     {lbl:'% Consolidación',   val:document.getElementById('k-consol').textContent,color:'#7b1010'},
     {lbl:'Frec. Neumonía',    val:document.getElementById('k-neum').textContent, color:'#c0392b'},
-    {lbl:'Pérdidas GDP',      val:document.getElementById('k-gdp').textContent,  color:'#c07a20'},
+    {lbl:'Pérdidas GDP',      val:document.getElementById('k-gdp').textContent,  color:'#2176c7'},
     {lbl:'Frec. Pleuritis',   val:document.getElementById('k-pleur').textContent, color:'#185fa5'},
   ];
 
