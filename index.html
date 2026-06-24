@@ -338,6 +338,14 @@ const GRANJAS=[{"id": 1, "n": "LA FABIOLA", "v": "La Fabiola"}, {"id": 2, "n": "
 const GRANJA_VISTA={"LA FABIOLA": "La Fabiola", "CAMPEON": "Campeon", "EL BOSQUE": "Salamanca", "BUENOS AIRES CER": "Buenos Aires CER", "CORCEGA": "Corcega", "VERSALLES": "Versalles", "SIERRA MORENA": "Sierramorena", "LA SELVA": "La Selva", "OASIS": "Oasis", "BUENOS AIRES GAM": "Buenos Aires GAM", "EL TREBOL": "El Trebol", "LA ESTRELLA": "La Estrella", "EL JAZMIN": "El Jazmin", "CORCEGA WTF": "Corcega WTF", "EL ESTERO": "El Estero", "MIRAFLORES": "Miraflores", "ALAMOS": "Alamos", "CORCEGA WTF 2": "Corcega WTF2", "LA CECILIA": "La Cecilia", "CRECERDOS": "Crecerdos", "PROCERDOS": "Procerdos", "LA CIBERITA CDO": "La Ciberita", "SAN LUIS CEBA CDO": "San Luis", "PRAGA CEBA CDO": "Praga", "MONTECERDO": "Montecerdo", "SAN LORENZO CDO": "San Lorenzo", "AGROPECUARIA GUAIMARAL SAS": "Guaymaral", "EL RUBI CDO": "El Rubi", "LA ABUELITA CDO": "La Abuelita", "LA ESPERANZA CDO": "La Esperanza", "LA RUEDA CDO": "La Rueda", "MIRAFLORES MB": "Miraflores", "CAMILO BLANDON SILVA - LOS MELLOS": "Los Mellos"};
 // Mapa de granja_nombre (mayúscula) → Grupo Asociado
 const GRANJA_ASOCIADO={"LA FABIOLA": "HBM", "CAMPEON": "CAMPEON", "EL BOSQUE": "CER", "BUENOS AIRES CER": "CER", "CORCEGA": "CER", "VERSALLES": "AGRO JABAR", "SIERRA MORENA": "GAM", "LA SELVA": "GAM", "OASIS": "GAM", "BUENOS AIRES GAM": "GAM", "EL TREBOL": "HBM", "LA ESTRELLA": "AGRO JABAR", "EL JAZMIN": "HBM", "CORCEGA WTF": "CER", "EL ESTERO": "GAM", "MIRAFLORES": "HBM", "ALAMOS": "GAM", "CORCEGA WTF 2": "CER", "LA CECILIA": "AGRO JABAR", "CRECERDOS": "CAMPEON", "PROCERDOS": "CAMPEON", "LA CIBERITA CDO": "CERDOS DEL OTUN", "SAN LUIS CEBA CDO": "CERDOS DEL OTUN", "PRAGA CEBA CDO": "CERDOS DEL OTUN", "MONTECERDO": "CAMPEON", "SAN LORENZO CDO": "CERDOS DEL OTUN", "AGROPECUARIA GUAIMARAL SAS": "CER", "EL RUBI CDO": "CERDOS DEL OTUN", "LA ABUELITA CDO": "CERDOS DEL OTUN", "LA ESPERANZA CDO": "CERDOS DEL OTUN", "LA RUEDA CDO": "CERDOS DEL OTUN", "MIRAFLORES MB": "HBM", "CAMILO BLANDON SILVA - LOS MELLOS": "HBM"};
+function setupCanvas(el, W, H){
+  const dpr=window.devicePixelRatio||1;
+  el.width=W*dpr; el.height=H*dpr;
+  el.style.width=W+'px'; el.style.height=H+'px';
+  const ctx=el.getContext('2d');
+  ctx.scale(dpr,dpr);
+  return ctx;
+}
 let allData=[],filteredData=[],cercafeStats=null;
 
 function calcCercafeStats(){
@@ -603,11 +611,9 @@ function dibujarBarras(){
   const BAR_ZONE=260;
   const H=BAR_ZONE+LBL_H;
   const W=Math.max(el.parentElement.clientWidth-32||500, n*52);
-  el.width=W; el.height=H;
   el.style.width='100%';
   el.style.height=H+'px';
-
-  const ctx=el.getContext('2d');
+  const ctx=setupCanvas(el,W,H);
   ctx.clearRect(0,0,W,H);
 
   if(!labels.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
@@ -675,8 +681,7 @@ function dibujarDona(){
 
   const el=document.getElementById('ch-sev');
   const W=el.parentElement.clientWidth-32||300, H=220;
-  el.width=W; el.height=H;
-  const ctx=el.getContext('2d');
+  const ctx=setupCanvas(el,W,H);
   ctx.clearRect(0,0,W,H);
 
   const total=Object.values(sevs).reduce((s,v)=>s+v,0)||1;
@@ -733,8 +738,7 @@ function dibujarLinea(){
 
   const el=document.getElementById('ch-linea');
   const W=el.parentElement.clientWidth-32||800, H=180;
-  el.width=W; el.height=H;
-  const ctx=el.getContext('2d');
+  const ctx=setupCanvas(el,W,H);
   ctx.clearRect(0,0,W,H);
 
   if(!lotesArr.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos suficientes',W/2,H/2);return;}
@@ -853,8 +857,7 @@ function dibujarMensual(){
   const el=document.getElementById('ch-mensual');
   if(!el)return;
   const W=el.parentElement.clientWidth-32||800, H=180;
-  el.width=W; el.height=H;
-  const ctx=el.getContext('2d');
+  const ctx=setupCanvas(el,W,H);
   ctx.clearRect(0,0,W,H);
 
   if(!meses.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
