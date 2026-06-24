@@ -231,7 +231,8 @@ const CONFIG={
         <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="kpi-sub" id="k-consol-sub">promedio por cerdo</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-consol">—</span></div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">cerdos con lesión</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-neum">—</span></div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Pérdidas GDP totales</div><div class="kpi-val c3" id="k-gdp">—</div><div class="kpi-sub">kg estimados</div></div>
-        <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-pleur">—</span></div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis total</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div><div style="font-size:10px;color:var(--muted);margin-top:3px;display:flex;gap:8px;"><span>Leve: <strong id="k-pleur-leve">—</strong></span><span>Severa: <strong id="k-pleur-sev">—</strong></span></div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-pleur">—</span></div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Poliserositis</div><div class="kpi-val c4" id="k-poliser">—</div><div class="kpi-sub" id="k-poliser-sub">pleuritis + pericarditis</div></div>
       </div>
 
       <!-- TOTAL + OTRAS LESIONES -->
@@ -356,7 +357,9 @@ function calcCercafeStats(){
   const idn=calcIDN(allData);
   const pctConsol=allData.reduce((s,d)=>s+(parseFloat(d.consolidacion_total)||0),0)/n;
   const neum=allData.filter(d=>(parseInt(d.categoria)||0)>0&&(parseFloat(d.consolidacion_total)||0)>0).length;
-  const pleur=allData.filter(d=>d.pleuritis_total).length;
+  const pleurLeve=allData.filter(d=>d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true').length;
+  const pleurSev=allData.filter(d=>d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true').length;
+  const pleur=pleurLeve+pleurSev;
   cercafeStats={idn,pctConsol,neum,n,pleur};
   // Mostrar en cards
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
@@ -533,7 +536,10 @@ function actualizarKPIs(){
   // Frecuencia neumonía = % cerdos con categoría > 0
   const neum=filteredData.filter(d=>(parseInt(d.categoria)||0)>0&&(parseFloat(d.consolidacion_total)||0)>0).length;
   // Frecuencia pleuritis
-  const pleur=filteredData.filter(d=>d.pleuritis_total).length;
+  const pleurLeve=filteredData.filter(d=>d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true').length;
+  const pleurSev=filteredData.filter(d=>d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true').length;
+  const pleur=pleurLeve+pleurSev;
+  const poliser=filteredData.filter(d=>(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true'||d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')&&(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true')).length;
 
   document.getElementById('k-idn').textContent=idn.toFixed(4);
   document.getElementById('k-idn-sub').textContent=filteredData.length+' cerdos inspeccionados';
@@ -555,6 +561,14 @@ function actualizarKPIs(){
   document.getElementById('k-neum-sub').textContent='de '+n+' inspeccionados';
   document.getElementById('k-pleur').textContent=pleur+' ('+(pleur/n*100).toFixed(1)+'%)';
   document.getElementById('k-pleur-sub').textContent='de '+n+' inspeccionados';
+  const pleurLeveEl=document.getElementById('k-pleur-leve');
+  const pleurSevEl=document.getElementById('k-pleur-sev');
+  if(pleurLeveEl)pleurLeveEl.textContent=pleurLeve+' ('+(pleurLeve/n*100).toFixed(1)+'%)';
+  if(pleurSevEl)pleurSevEl.textContent=pleurSev+' ('+(pleurSev/n*100).toFixed(1)+'%)';
+  const poliserEl=document.getElementById('k-poliser');
+  const poliserSubEl=document.getElementById('k-poliser-sub');
+  if(poliserEl)poliserEl.textContent=poliser+' ('+(poliser/n*100).toFixed(1)+'%)';
+  if(poliserSubEl)poliserSubEl.textContent='de '+n+' inspeccionados';
 
   // Análisis en dashboard
   setTimeout(()=>{
@@ -932,7 +946,7 @@ function actualizarTablas(){
     pg.lotes[lk].tce++;
     const cat=parseInt(d.categoria)||0;
     if(cat>0&&(parseFloat(d.consolidacion_total)||0)>0)pg.neum++;
-    if(d.pleuritis_total)pg.pleur++;
+    if(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true'||d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')pg.pleur++;
     pg.sumGdp+=parseFloat(d.perdida_gdp_kg)||0;
     const consolIndiv=parseFloat(d.consolidacion_total)||0;
     if(consolIndiv<=0)pg.sevs.Sin++;else if(consolIndiv<=10)pg.sevs.Leve++;else if(consolIndiv<=30)pg.sevs.Moderada++;else pg.sevs.Severa++;
@@ -978,7 +992,7 @@ function actualizarTablas(){
     l.tce++;
     const cat=parseInt(d.categoria)||0;
     if(cat>0&&(parseFloat(d.consolidacion_total)||0)>0)l.neum++;
-    if(d.pleuritis_total)l.pleur++;
+    if(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true'||d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')l.pleur++;
     l.gdp+=parseFloat(d.perdida_gdp_kg)||0;
     const consol=parseFloat(d.consolidacion_total)||0;
     if(consol<=0)l.sevs.Sin++;else if(consol<=10)l.sevs.Leve++;else if(consol<=30)l.sevs.Moderada++;else l.sevs.Severa++;
@@ -1163,7 +1177,8 @@ function imprimirPDF(){
     {lbl:'% Consolidación',   val:document.getElementById('k-consol').textContent,color:'#7b1010'},
     {lbl:'Frec. Neumonía',    val:document.getElementById('k-neum').textContent, color:'#9e2a2a'},
     {lbl:'Pérdidas GDP',      val:document.getElementById('k-gdp').textContent,  color:'#4a6491'},
-    {lbl:'Frec. Pleuritis',   val:document.getElementById('k-pleur').textContent, color:'#185fa5'},
+    {lbl:'Frec. Pleuritis',   val:document.getElementById('k-pleur').textContent+' (L:'+((document.getElementById('k-pleur-leve')||{}).textContent||'—')+' S:'+((document.getElementById('k-pleur-sev')||{}).textContent||'—')+')', color:'#185fa5'},
+    {lbl:'Poliserositis',      val:(document.getElementById('k-poliser')||{}).textContent||'—', color:'#4a3080'},
   ];
 
   const lesiones=[
@@ -1191,7 +1206,7 @@ function imprimirPDF(){
     </div>
 
     <!-- KPI CARDS -->
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px;">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:12px;">
       ${kpis.map(k=>`
         <div style="border:1px solid #e0d8da;border-radius:6px;padding:8px 6px 6px;text-align:center;border-top:3px solid ${k.color};display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:68px;">
           <div style="font-size:7pt;color:#6b5558;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;min-height:2.4em;display:flex;align-items:center;justify-content:center;">${k.lbl}</div>
