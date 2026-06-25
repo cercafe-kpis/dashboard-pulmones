@@ -184,6 +184,7 @@ const CONFIG={
         <svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M2 10v2h10v-2M7 2v7M4.5 6.5L7 9l2.5-2.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Exportar PDF
       </button>
+      <span id="btn-tuhub-wrap"></span>
       <button class="btn-out" onclick="doLogout()">Salir</button>
     </div>
   </div>
@@ -340,6 +341,16 @@ const GRANJAS=[{"id": 1, "n": "LA FABIOLA", "v": "La Fabiola"}, {"id": 2, "n": "
 // Mapa de granja_nombre (mayúscula) → Granja_vista
 const GRANJA_VISTA={"LA FABIOLA": "La Fabiola", "CAMPEON": "Campeon", "EL BOSQUE": "El Bosque", "BUENOS AIRES CER": "Buenos Aires CER", "CORCEGA": "Corcega", "VERSALLES": "Versalles", "LA SELVA": "La Selva", "OASIS": "Oasis", "BUENOS AIRES GAM": "Buenos Aires GAM", "EL TREBOL": "El Trebol", "LA ESTRELLA": "La Estrella", "EL JAZMIN": "El Jazmin", "CORCEGA WTF": "Corcega WTF", "EL ESTERO": "El Estero", "MIRAFLORES": "Miraflores", "ALAMOS": "Alamos", "CORCEGA WTF 2": "Corcega WTF2", "LA CECILIA": "La Cecilia", "CRECERDOS": "Crecerdos", "PROCERDOS": "Procerdos", "LA CIBERITA CDO": "La Ciberita", "SAN LUIS CEBA CDO": "San Luis", "PRAGA CEBA CDO": "Praga", "MONTECERDO": "Montecerdo", "SAN LORENZO CDO": "San Lorenzo", "AGROPECUARIA GUAIMARAL SAS": "Guaymaral", "EL RUBI CDO": "El Rubi", "LA ABUELITA CDO": "La Abuelita", "LA ESPERANZA CDO": "La Esperanza", "LA RUEDA CDO": "La Rueda", "MIRAFLORES MB": "Miraflores", "CAMILO BLANDON SILVA - LOS MELLOS": "Los Mellos"};
 // Mapa de granja_nombre (mayúscula) → Grupo Asociado
+// URLs TuHub por asociado (para botón Abrir Tu.HUB)
+const TUHUB_URL={
+  'HBM':       'https://cercafe.sharepoint.com/sites/TuHubHBM',
+  'GAM':       'https://cercafe.sharepoint.com/sites/TuHubPIGAM',
+  'CER':       'https://cercafe.sharepoint.com/sites/Tu.HUB2/SitePages/human-resource-home.aspx',
+  'CAMPEON':   'https://cercafe.sharepoint.com/sites/Tu.HubCampeon/SitePages/human-resource-home.aspx',
+  'AGROJABAR': 'https://cercafe.sharepoint.com/sites/TuHubAGROJABAR-AGROVERSALLES',
+  'CDO':       'https://cercafe.sharepoint.com/sites/TU.HUBCerdosdelOtn/SitePages/human-resource-home.aspx',
+};
+
 // Control de acceso por parámetro ?site= en la URL
 const SITE_ASOCIADO={
   'HBM':            'HBM',
@@ -478,17 +489,24 @@ async function cargarDatos(){
 }
 
 function poblarFiltros(){
-  // Poblar asociados
-  const asociados=[...new Set(allData.map(d=>GRANJA_ASOCIADO[(d.granja_nombre||"").toUpperCase()]).filter(Boolean))].sort();
+  // Poblar asociados (solo si es admin)
   const selA=document.getElementById('f-asociado');
-  selA.innerHTML='<option value="">Todos los asociados</option>';
-  asociados.forEach(a=>selA.innerHTML+=`<option value="${a}">${a}</option>`);
-  // Poblar granjas
-  const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort();
+  if(!userAsociado){
+    const asociados=[...new Set(allData.map(d=>GRANJA_ASOCIADO[(d.granja_nombre||"").toUpperCase()]).filter(Boolean))].sort();
+    selA.innerHTML='<option value="">Todos los asociados</option>';
+    asociados.forEach(a=>selA.innerHTML+=`<option value="${a}">${a}</option>`);
+  } else {
+    selA.closest('div').style.display='none';
+  }
+  // Poblar granjas — filtrar por asociado si aplica
+  const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort()
+    .filter(g=>!userAsociado||GRANJA_ASOCIADO[g.toUpperCase()]===userAsociado);
   const sel=document.getElementById('f-granja');
   sel.innerHTML='<option value="">Todas las granjas</option>';
   granjas.forEach(g=>sel.innerHTML+=`<option value="${g}">${GRANJA_VISTA[g.toUpperCase()]||g}</option>`);
-  poblarConsec(allData);
+  // Poblar consecutivos — filtrar por asociado si aplica
+  const dataPoblar=userAsociado?allData.filter(d=>GRANJA_ASOCIADO[(d.granja_nombre||"").toUpperCase()]===userAsociado):allData;
+  poblarConsec(dataPoblar);
 }
 
 function filtrarPorAsociado(){
