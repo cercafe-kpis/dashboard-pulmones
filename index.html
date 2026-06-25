@@ -340,18 +340,19 @@ const GRANJAS=[{"id": 1, "n": "LA FABIOLA", "v": "La Fabiola"}, {"id": 2, "n": "
 // Mapa de granja_nombre (mayúscula) → Granja_vista
 const GRANJA_VISTA={"LA FABIOLA": "La Fabiola", "CAMPEON": "Campeon", "EL BOSQUE": "El Bosque", "BUENOS AIRES CER": "Buenos Aires CER", "CORCEGA": "Corcega", "VERSALLES": "Versalles", "LA SELVA": "La Selva", "OASIS": "Oasis", "BUENOS AIRES GAM": "Buenos Aires GAM", "EL TREBOL": "El Trebol", "LA ESTRELLA": "La Estrella", "EL JAZMIN": "El Jazmin", "CORCEGA WTF": "Corcega WTF", "EL ESTERO": "El Estero", "MIRAFLORES": "Miraflores", "ALAMOS": "Alamos", "CORCEGA WTF 2": "Corcega WTF2", "LA CECILIA": "La Cecilia", "CRECERDOS": "Crecerdos", "PROCERDOS": "Procerdos", "LA CIBERITA CDO": "La Ciberita", "SAN LUIS CEBA CDO": "San Luis", "PRAGA CEBA CDO": "Praga", "MONTECERDO": "Montecerdo", "SAN LORENZO CDO": "San Lorenzo", "AGROPECUARIA GUAIMARAL SAS": "Guaymaral", "EL RUBI CDO": "El Rubi", "LA ABUELITA CDO": "La Abuelita", "LA ESPERANZA CDO": "La Esperanza", "LA RUEDA CDO": "La Rueda", "MIRAFLORES MB": "Miraflores", "CAMILO BLANDON SILVA - LOS MELLOS": "Los Mellos"};
 // Mapa de granja_nombre (mayúscula) → Grupo Asociado
-// Mapa URL TuHub -> Grupo Asociado (para control de acceso)
-const TUHUB_ASOCIADO={
-  'cercafe.sharepoint.com/sites/TuHubHBM':                        'HBM',
-  'cercafe.sharepoint.com/sites/Tu.HubCampeon':                   'CAMPEON',
-  'cercafe.sharepoint.com/sites/Tu.HUB2':                         'CER',
-  'cercafe.sharepoint.com/sites/TuHubAGROJABAR-AGROVERSALLES':   'AGRO JABAR',
-  'cercafe.sharepoint.com/sites/TuHubPIGAM':                      'GAM',
-  'cercafe.sharepoint.com/sites/TU.HUBCerdosdelOtn':              'CERDOS DEL OTUN',
+// Control de acceso por parámetro ?site= en la URL
+const SITE_ASOCIADO={
+  'HBM':            'HBM',
+  'GAM':            'GAM',
+  'CER':            'CER',
+  'CAMPEON':        'CAMPEON',
+  'AGROJABAR':      'AGRO JABAR',
+  'CDO':            'CERDOS DEL OTUN',
 };
-// Dominio Cercafe (admin = ve todo)
-const CERCAFE_DOMAIN='cercafe.com.co';
-let userAsociado=null; // null = admin (Cercafe), string = solo ese asociado
+// Leer parámetro site de la URL
+const _urlParams=new URLSearchParams(window.location.search);
+const _siteParam=(_urlParams.get('site')||'').toUpperCase();
+let userAsociado=SITE_ASOCIADO[_siteParam]||null; // null = admin (ve todo)
 
 const GRANJA_ASOCIADO={"LA FABIOLA": "HBM", "CAMPEON": "CAMPEON", "EL BOSQUE": "CER", "BUENOS AIRES CER": "CER", "CORCEGA": "CER", "VERSALLES": "AGRO JABAR", "LA SELVA": "GAM", "OASIS": "GAM", "BUENOS AIRES GAM": "GAM", "EL TREBOL": "HBM", "LA ESTRELLA": "AGRO JABAR", "EL JAZMIN": "HBM", "CORCEGA WTF": "CER", "EL ESTERO": "GAM", "MIRAFLORES": "HBM", "ALAMOS": "GAM", "CORCEGA WTF 2": "CER", "LA CECILIA": "AGRO JABAR", "CRECERDOS": "CAMPEON", "PROCERDOS": "CAMPEON", "LA CIBERITA CDO": "CERDOS DEL OTUN", "SAN LUIS CEBA CDO": "CERDOS DEL OTUN", "PRAGA CEBA CDO": "CERDOS DEL OTUN", "MONTECERDO": "CAMPEON", "SAN LORENZO CDO": "CERDOS DEL OTUN", "AGROPECUARIA GUAIMARAL SAS": "CER", "EL RUBI CDO": "CERDOS DEL OTUN", "LA ABUELITA CDO": "CERDOS DEL OTUN", "LA ESPERANZA CDO": "CERDOS DEL OTUN", "LA RUEDA CDO": "CERDOS DEL OTUN", "MIRAFLORES MB": "HBM", "CAMILO BLANDON SILVA - LOS MELLOS": "HBM"};
 function setupCanvas(el, W, H){
@@ -414,39 +415,8 @@ function showApp(acc){
   document.getElementById('uname').textContent=name;
   document.getElementById('av').textContent=name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
 
-  // Detectar rol: admin (Cercafe) o asociado
-  const email=(acc.username||acc.upn||'').toLowerCase();
-  const domain=email.split('@')[1]||'';
-  if(domain===CERCAFE_DOMAIN||domain===''){
-    userAsociado=null; // Admin: ve todo
-  } else {
-    // Buscar si el email coincide con algún sitio TuHub via referrer o detectar por email
-    // Por defecto: buscar asociado por dominio de email o dejar null para que
-    // se resuelva al cargar datos desde el sitio SharePoint del usuario
-    userAsociado=null;
-    // Se resolverá en resolverRolPorSitio()
-  }
 }
 
-async function resolverRolPorSitio(){
-  // Intentar determinar el asociado detectando a qué TuHub tiene acceso el usuario
-  if(userAsociado!==null)return; // ya resuelto
-  const tok=await getToken();
-  // Probar cada sitio TuHub y ver cuál responde con éxito para este usuario
-  for(const [path,asoc] of Object.entries(TUHUB_ASOCIADO)){
-    try{
-      const url=`https://graph.microsoft.com/v1.0/sites/${path}`;
-      const r=await fetch(url,{headers:{Authorization:`Bearer ${tok}`}});
-      if(r.ok){
-        userAsociado=asoc;
-        // Ocultar filtro de asociado si no es admin
-        const selAsoc=document.getElementById('f-asociado');
-        if(selAsoc)selAsoc.closest('.filter-row')&&(selAsoc.parentElement.style.display='none');
-        break;
-      }
-    }catch(e){}
-  }
-}
 
 async function resolverSP(){
   if(spSiteId&&spListId)return;
@@ -486,7 +456,6 @@ async function cargarDatos(){
     });
     poblarFiltros();
     calcCercafeStats();
-    await resolverRolPorSitio();
     // Si es asociado, ocultar el filtro de asociado
     if(userAsociado){
       // Ocultar el select de asociado para usuarios no-admin
