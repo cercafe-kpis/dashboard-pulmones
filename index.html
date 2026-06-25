@@ -349,10 +349,13 @@ const SITE_ASOCIADO={
   'AGROJABAR':      'AGRO JABAR',
   'CDO':            'CERDOS DEL OTUN',
 };
-// Leer parámetro site de la URL
+// Leer parámetro site de la URL y persistir en sessionStorage
 const _urlParams=new URLSearchParams(window.location.search);
 const _siteParam=(_urlParams.get('site')||'').toUpperCase();
-let userAsociado=SITE_ASOCIADO[_siteParam]||null; // null = admin (ve todo)
+// Si viene con ?site=X, guardarlo; si no, leer el que estaba guardado
+if(_siteParam) sessionStorage.setItem('_dash_site',_siteParam);
+const _siteFinal=(sessionStorage.getItem('_dash_site')||'').toUpperCase();
+let userAsociado=SITE_ASOCIADO[_siteFinal]||null; // null = admin (ve todo)
 
 const GRANJA_ASOCIADO={"LA FABIOLA": "HBM", "CAMPEON": "CAMPEON", "EL BOSQUE": "CER", "BUENOS AIRES CER": "CER", "CORCEGA": "CER", "VERSALLES": "AGRO JABAR", "LA SELVA": "GAM", "OASIS": "GAM", "BUENOS AIRES GAM": "GAM", "EL TREBOL": "HBM", "LA ESTRELLA": "AGRO JABAR", "EL JAZMIN": "HBM", "CORCEGA WTF": "CER", "EL ESTERO": "GAM", "MIRAFLORES": "HBM", "ALAMOS": "GAM", "CORCEGA WTF 2": "CER", "LA CECILIA": "AGRO JABAR", "CRECERDOS": "CAMPEON", "PROCERDOS": "CAMPEON", "LA CIBERITA CDO": "CERDOS DEL OTUN", "SAN LUIS CEBA CDO": "CERDOS DEL OTUN", "PRAGA CEBA CDO": "CERDOS DEL OTUN", "MONTECERDO": "CAMPEON", "SAN LORENZO CDO": "CERDOS DEL OTUN", "AGROPECUARIA GUAIMARAL SAS": "CER", "EL RUBI CDO": "CERDOS DEL OTUN", "LA ABUELITA CDO": "CERDOS DEL OTUN", "LA ESPERANZA CDO": "CERDOS DEL OTUN", "LA RUEDA CDO": "CERDOS DEL OTUN", "MIRAFLORES MB": "HBM", "CAMILO BLANDON SILVA - LOS MELLOS": "HBM"};
 function setupCanvas(el, W, H){
@@ -386,7 +389,7 @@ function calcCercafeStats(){
 async function doLogin(){
   try{
     msalApp=new msal.PublicClientApplication({
-      auth:{clientId:CONFIG.CLIENT_ID,authority:`https://login.microsoftonline.com/${CONFIG.TENANT_ID}`,redirectUri:location.origin+location.pathname},
+      auth:{clientId:CONFIG.CLIENT_ID,authority:`https://login.microsoftonline.com/${CONFIG.TENANT_ID}`,redirectUri:location.origin+location.pathname.replace(/\/$/,'')+'/'},
       cache:{cacheLocation:'sessionStorage'}
     });
     await msalApp.initialize();
@@ -434,6 +437,9 @@ async function resolverSP(){
 async function cargarDatos(){
   document.getElementById('loading').style.display='block';
   document.getElementById('contenido').style.display='none';
+  // Verificar que hay sesión activa antes de cargar
+  const accounts=msalApp?msalApp.getAllAccounts():[];
+  if(!accounts.length){showToast('Sesión no encontrada. Por favor inicie sesión.','err');document.getElementById('loading').style.display='none';return;}
   try{
     await resolverSP();
     const tok=await getToken();
