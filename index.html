@@ -810,7 +810,7 @@ function dibujarDona(){
   const etiquetas=Object.keys(sevs);
   const valores=Object.values(sevs);
 
-  const cx=Math.min(W*0.32, H/2-5), cy=H/2, r=Math.max(10,Math.min(cx,cy)-15), ri=Math.max(5,r*.55);
+  const legendW=140; const cx2=Math.min((W-legendW-10)/2, H/2-10); const cx=cx2, cy=H/2, r=Math.max(10,cx-8), ri=Math.max(5,r*.55);
   let ang=-Math.PI/2;
 
   valores.forEach((v,i)=>{
@@ -829,16 +829,16 @@ function dibujarDona(){
   ctx.beginPath();ctx.arc(cx,cy,ri,0,2*Math.PI);
   ctx.fillStyle='#fff';ctx.fill();
 
-  // Leyenda — alineada a la derecha con espacio suficiente
-  const lx=cx+r+14;
-  const lyStart=cy-valores.length*16;
+  // Leyenda fija desde borde derecho
+  const lx=W-legendW+4;
+  const lyStart=cy-valores.length*17;
   etiquetas.forEach((lbl,i)=>{
-    const y=lyStart+i*30;
+    const y=lyStart+i*32;
     ctx.fillStyle=colores[i];
-    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(lx,y,12,12,2);else ctx.rect(lx,y,12,12);ctx.fill();
-    ctx.fillStyle='#1a1814';ctx.font='11px sans-serif';ctx.textAlign='left';
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(lx,y,11,11,2);else ctx.rect(lx,y,11,11);ctx.fill();
+    ctx.fillStyle='#1a1814';ctx.font='10px sans-serif';ctx.textAlign='left';
     const txt=`${lbl}: ${valores[i]} (${Math.round(valores[i]/total*100)}%)`;
-    ctx.fillText(txt,lx+16,y+9);
+    ctx.fillText(txt,lx+14,y+9);
   });
 }
 
@@ -1330,14 +1330,14 @@ function imprimirPDF(){
 
     <!-- GRÁFICAS -->
     <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;">Gráficas</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+    <div style="display:grid;grid-template-columns:3fr 1fr;gap:10px;margin-bottom:8px;align-items:start;">
       <div>
         <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">IDN promedio por granja</div>
         <img src="${imgGranjas}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;">
       </div>
       <div>
         <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">Distribución de severidad</div>
-        <img src="${imgSev}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;">
+        <img src="${imgSev}" style="width:100%;max-height:180px;object-fit:contain;border:1px solid #e8e3da;border-radius:4px;">
       </div>
     </div>
     <div style="margin-bottom:12px;">
