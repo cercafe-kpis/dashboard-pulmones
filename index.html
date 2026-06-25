@@ -244,15 +244,25 @@ const CONFIG={
           <div class="kpi-val" style="color:#fff;font-size:32px;" id="k-total-n">—</div>
           <div class="kpi-sub" style="color:rgba(255,255,255,.7);">cerdos</div>
         </div>
-        <div style="flex:1;display:grid;grid-template-columns:repeat(8,1fr);gap:8px;">
-          <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span><span class="mc-pct" id="k-nint-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span><span class="mc-pct" id="k-absc-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span><span class="mc-pct" id="k-nodu-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span><span class="mc-pct" id="k-peri-p">—</span></div></div>
-          <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span><span class="mc-pct" id="k-manc-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span><span class="mc-pct" id="k-agua-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span><span class="mc-pct" id="k-sang-p">—</span></div></div>
-          <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span><span class="mc-pct" id="k-pete-p">—</span></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <!-- Lesiones -->
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+            <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span><span class="mc-pct" id="k-nint-p">—</span></div></div>
+            <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span><span class="mc-pct" id="k-absc-p">—</span></div></div>
+            <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span><span class="mc-pct" id="k-nodu-p">—</span></div></div>
+            <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span><span class="mc-pct" id="k-peri-p">—</span></div></div>
+            <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span><span class="mc-pct" id="k-manc-p">—</span></div></div>
+          </div>
+          <!-- Artefactos -->
+          <div style="border:1px solid var(--borderl);border-radius:var(--rs);padding:6px 8px;">
+            <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px;">Artefactos en pulmón sano · <span style="font-weight:400;font-style:italic;">Medición sobre cerdos sin ninguna lesión</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+              <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span><span class="mc-pct" id="k-agua-p">—</span></div></div>
+              <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span><span class="mc-pct" id="k-sang-p">—</span></div></div>
+              <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span><span class="mc-pct" id="k-pete-p">—</span></div></div>
+              <div class="mini-card art" style="border-color:var(--g);"><div class="mc-lbl" style="color:var(--g);">Ambos artefactos</div><div class="mc-val"><span class="mc-n" id="k-ambos-n" style="color:var(--g);">—</span><span class="mc-pct" id="k-ambos-p">—</span></div></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -391,7 +401,7 @@ function calcCercafeStats(){
   cercafeStats={idn,pctConsol,neum,n,pleur};
   // Mostrar en cards
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  set('cr-idn', idn.toFixed(4));
+  set('cr-idn', idn.toFixed(2));
   set('cr-consol', pctConsol.toFixed(2)+'%');
   set('cr-neum', (neum/n*100).toFixed(1)+'%');
   set('cr-pleur', (pleur/n*100).toFixed(1)+'%');
@@ -595,7 +605,7 @@ function actualizarKPIs(){
   const pleur=pleurLeve+pleurSev;
   const poliser=filteredData.filter(d=>(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true'||d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')&&(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true')).length;
 
-  document.getElementById('k-idn').textContent=idn.toFixed(4);
+  document.getElementById('k-idn').textContent=idn.toFixed(2);
   document.getElementById('k-idn-sub').textContent=filteredData.length+' cerdos inspeccionados';
   const totalEl=document.getElementById('k-total-n');
   if(totalEl)totalEl.textContent=filteredData.length;
@@ -668,6 +678,16 @@ function actualizarKPIs(){
     if(nEl)nEl.textContent=cnt;
     if(pEl)pEl.textContent='('+pct+'%)';
   });
+  // Ambos artefactos: sanos con al menos 2 de (agua, sangre, petequias)
+  const cntAmbos=sanos.filter(d=>{
+    const a=[d.artefacto_agua,d.artefacto_sangre,d.petequias].filter(v=>v===true||v===1||v==='true').length;
+    return a>=2;
+  }).length;
+  const pctAmbos=(cntAmbos/n*100).toFixed(1);
+  const ambosN=document.getElementById('k-ambos-n');
+  const ambosP=document.getElementById('k-ambos-p');
+  if(ambosN)ambosN.textContent=cntAmbos;
+  if(ambosP)ambosP.textContent='('+pctAmbos+'%)';
 }
 
 /* ── GRÁFICAS EN CANVAS NATIVO ── */
@@ -1037,7 +1057,7 @@ function actualizarTablas(){
     // IDN = promedio de (CT/TCE) de cada lote de la granja
     const lotesArr=Object.values(pg.lotes);
     const idnVal=lotesArr.length>0?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
-    const idn=idnVal.toFixed(4);
+    const idn=idnVal.toFixed(2);
     const sevP=Object.entries(pg.sevs).sort((a,b)=>b[1]-a[1])[0][0];
     const sc={Sin:'sev-0',Leve:'sev-1',Moderada:'sev-2',Severa:'sev-3'}[sevP];
     tbG.innerHTML+=`<tr>
@@ -1083,7 +1103,7 @@ function actualizarTablas(){
       <td class="td-num">${l.consec}</td>
       <td>${l.fecha||'—'}</td>
       <td class="td-num">${l.tce}</td>
-      <td class="td-num"><strong>${idn.toFixed(4)}</strong></td>
+      <td class="td-num"><strong>${idn.toFixed(2)}</strong></td>
       <td class="td-num">${(l.neum/l.tce*100).toFixed(1)}%</td>
       <td class="td-num">${(l.pleur/l.tce*100).toFixed(1)}%</td>
       <td class="td-num">${l.gdp.toFixed(1)}</td>
@@ -1154,7 +1174,7 @@ function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <tr style="background:var(--surface);">
             <td style="padding:6px 10px;font-weight:600;width:40%;border:1px solid var(--borderl);">IDN (CT/TCE)</td>
-            <td style="padding:6px 10px;border:1px solid var(--borderl);">${idn.toFixed(4)} — <span style="color:${colorIdn};font-weight:600">${sevIdn}</span></td>
+            <td style="padding:6px 10px;border:1px solid var(--borderl);">${idn.toFixed(2)} — <span style="color:${colorIdn};font-weight:600">${sevIdn}</span></td>
           </tr>
           <tr>
             <td style="padding:6px 10px;font-weight:600;border:1px solid var(--borderl);">% Consolidación</td>
@@ -1186,9 +1206,9 @@ function generarAnalisis(kpis, n){
   const idn=parseFloat(document.getElementById('k-idn').textContent)||0;
   const consol=parseFloat(document.getElementById('k-consol').textContent)||0;
   const neums=document.getElementById('k-neum').textContent;
-  const neumPct=parseInt((neums.match(/\((\d+)%\)/)||[0,0])[1])||0;
+  const neumPct=parseFloat((neums.match(/\(([\d.]+)%\)/)||[0,0])[1])||0;
   const pleurs=document.getElementById('k-pleur').textContent;
-  const pleurPct=parseInt((pleurs.match(/\((\d+)%\)/)||[0,0])[1])||0;
+  const pleurPct=parseFloat((pleurs.match(/\(([\d.]+)%\)/)||[0,0])[1])||0;
   const gdp=document.getElementById('k-gdp').textContent;
 
   let sevIdn='',sevConsol='',recIdn='';
@@ -1254,7 +1274,7 @@ function imprimirPDF(){
     {lbl:'% Consolidación',   val:document.getElementById('k-consol').textContent,color:'#7b1010'},
     {lbl:'Frec. Neumonía',    val:document.getElementById('k-neum').textContent, color:'#9e2a2a'},
     {lbl:'Pérdidas GDP',      val:document.getElementById('k-gdp').textContent,  color:'#4a6491'},
-    {lbl:'Frec. Pleuritis',   val:document.getElementById('k-pleur').textContent+' (L:'+((document.getElementById('k-pleur-leve')||{}).textContent||'—')+' S:'+((document.getElementById('k-pleur-sev')||{}).textContent||'—')+')', color:'#185fa5'},
+    {lbl:'Frec. Pleuritis\n(L: Leve · S: Severa)',   val:document.getElementById('k-pleur').textContent+' (L:'+((document.getElementById('k-pleur-leve')||{}).textContent||'—')+' S:'+((document.getElementById('k-pleur-sev')||{}).textContent||'—')+')', color:'#185fa5'},
     {lbl:'Poliserositis',      val:(document.getElementById('k-poliser')||{}).textContent||'—', color:'#4a3080'},
   ];
 
@@ -1267,6 +1287,7 @@ function imprimirPDF(){
     {lbl:'Artefacto agua',        val:(document.getElementById('k-agua-n')||{}).textContent+' '+(document.getElementById('k-agua-p')||{}).textContent},
     {lbl:'Artefacto sangre',      val:(document.getElementById('k-sang-n')||{}).textContent+' '+(document.getElementById('k-sang-p')||{}).textContent},
     {lbl:'Petequias',             val:(document.getElementById('k-pete-n')||{}).textContent+' '+(document.getElementById('k-pete-p')||{}).textContent},
+    {lbl:'Ambos artefactos',       val:(document.getElementById('k-ambos-n')||{}).textContent+' '+(document.getElementById('k-ambos-p')||{}).textContent},
   ];
 
   const html=`
@@ -1294,8 +1315,9 @@ function imprimirPDF(){
     <!-- ANÁLISIS -->
     ${generarAnalisis(kpis, n)}
 
-    <!-- OTRAS LESIONES Y ARTEFACTOS -->
-    <div style="margin-top:12px;margin-bottom:6px;font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;">Otras lesiones y artefactos</div>
+    <!-- OTRAS LESIONES Y ARTEFACTOS --> <!-- nota: artefactos = pulmones sanos -->
+    <div style="margin-top:12px;margin-bottom:2px;font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;">Otras lesiones y artefactos</div>
+    <div style="font-size:7pt;color:#9e878c;font-style:italic;margin-bottom:6px;">* Artefacto agua, Artefacto sangre, Petequias y Ambos artefactos se miden sobre cerdos con pulmón sano (sin ninguna lesión).</div>
     <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-bottom:12px;">
       ${lesiones.map(l=>`
         <div style="border:1px solid #e0d8da;border-radius:5px;padding:7px 4px 5px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:58px;">
