@@ -83,7 +83,7 @@ select:focus,input:focus{outline:none;border-color:var(--gm);}
 .cercafe-ref .cr-val{font-family:var(--mono);font-weight:600;color:var(--g);white-space:nowrap;font-size:15px;}
 .cercafe-ref .cr-lbl{opacity:.7;white-space:nowrap;}
 
-.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:1rem;}
+.charts-grid{display:grid;grid-template-columns:3fr 1fr;gap:10px;margin-bottom:1rem;}
 @media(max-width:800px){.charts-grid{grid-template-columns:1fr;}}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem;}
 .chart-card.full{grid-column:1/-1;}
@@ -810,7 +810,7 @@ function dibujarDona(){
   const etiquetas=Object.keys(sevs);
   const valores=Object.values(sevs);
 
-  const cx=W*0.38, cy=H/2, r=Math.max(10,Math.min(cx,cy)-20), ri=Math.max(5,r*.55);
+  const cx=Math.min(W*0.32, H/2-5), cy=H/2, r=Math.max(10,Math.min(cx,cy)-15), ri=Math.max(5,r*.55);
   let ang=-Math.PI/2;
 
   valores.forEach((v,i)=>{
@@ -829,14 +829,16 @@ function dibujarDona(){
   ctx.beginPath();ctx.arc(cx,cy,ri,0,2*Math.PI);
   ctx.fillStyle='#fff';ctx.fill();
 
-  // Leyenda
-  const lx=W*0.68, ly=cy-valores.length*14;
+  // Leyenda — alineada a la derecha con espacio suficiente
+  const lx=cx+r+14;
+  const lyStart=cy-valores.length*16;
   etiquetas.forEach((lbl,i)=>{
-    const y=ly+i*28;
+    const y=lyStart+i*30;
     ctx.fillStyle=colores[i];
-    ctx.fillRect(lx,y,14,14);
-    ctx.fillStyle='#1a1814';ctx.font='12px sans-serif';ctx.textAlign='left';
-    ctx.fillText(`${lbl}: ${valores[i]} (${Math.round(valores[i]/total*100)}%)`,lx+18,y+11);
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(lx,y,12,12,2);else ctx.rect(lx,y,12,12);ctx.fill();
+    ctx.fillStyle='#1a1814';ctx.font='11px sans-serif';ctx.textAlign='left';
+    const txt=`${lbl}: ${valores[i]} (${Math.round(valores[i]/total*100)}%)`;
+    ctx.fillText(txt,lx+16,y+9);
   });
 }
 
