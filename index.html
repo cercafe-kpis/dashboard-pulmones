@@ -428,7 +428,12 @@ function showApp(acc){
   const name=acc.displayName||acc.name||'Usuario';
   document.getElementById('uname').textContent=name;
   document.getElementById('av').textContent=name.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
-
+  // Botón Tu.HUB solo si es asociado
+  const tuhubUrl=TUHUB_URL[_siteFinal]||null;
+  const tuhubWrap=document.getElementById('btn-tuhub-wrap');
+  if(tuhubUrl&&tuhubWrap){
+    tuhubWrap.innerHTML=`<a href="${tuhubUrl}" target="_blank" style="height:30px;padding:0 14px;background:var(--gd);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;">🏠 Abrir Tu.HUB</a>`;
+  }
 }
 
 
