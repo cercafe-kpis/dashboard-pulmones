@@ -276,7 +276,14 @@ const CONFIG={
       <div class="sec">Gráficas</div>
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">IDN promedio por granja</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="chart-title" style="margin-bottom:0;">IDN promedio por granja</div>
+          <div style="display:flex;gap:4px;">
+            <button id="btn-asc" onclick="setOrdenBarras('asc')" style="padding:3px 10px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;">↑ Asc</button>
+            <button id="btn-desc" onclick="setOrdenBarras('desc')" style="padding:3px 10px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;">↓ Des</button>
+            <button id="btn-alfa" onclick="setOrdenBarras('alfa')" style="padding:3px 10px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--g);color:#fff;cursor:pointer;">A-Z</button>
+          </div>
+        </div>
           <canvas id="ch-granjas" height="320"></canvas>
         </div>
         <div class="chart-card">
@@ -705,6 +712,16 @@ function limpiarCanvas(id){
   return{c,ctx};
 }
 
+let _ordenBarras='alfa';
+function setOrdenBarras(orden){
+  _ordenBarras=orden;
+  ['btn-asc','btn-desc','btn-alfa'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b)b.style.background=id.endsWith(orden)?'var(--g)':'var(--surface)';
+    if(b)b.style.color=id.endsWith(orden)?'#fff':'';
+  });
+  dibujarBarras();
+}
 function dibujarBarras(){
   const porG={};
   filteredData.forEach(d=>{
@@ -715,13 +732,17 @@ function dibujarBarras(){
     porG[g].lotes[loteKey].ct+=parseInt(d.categoria)||0;
     porG[g].lotes[loteKey].tce++;
   });
-  const labels=Object.keys(porG).sort();
-  const labelsVista=labels.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
-  const vals=labels.map(g=>{
+  let labels=Object.keys(porG).sort();
+  let valsMap={}; labels.forEach(g=>{
     const lotes=Object.values(porG[g].lotes);
     const idns=lotes.map(l=>l.tce>0?l.ct/l.tce:0);
-    return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
+    valsMap[g]=idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
   });
+  if(_ordenBarras==='asc') labels.sort((a,b)=>valsMap[a]-valsMap[b]);
+  else if(_ordenBarras==='desc') labels.sort((a,b)=>valsMap[b]-valsMap[a]);
+  // else 'alfa' ya está ordenado
+  const labelsVista=labels.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
+  const vals=labels.map(g=>valsMap[g]);
   const colors=vals.map(v=>v===0?'#4a6491':v<0.56?'#257a65':v<=0.89?'#b07a00':'#9e2a2a');
 
   const el=document.getElementById('ch-granjas');
@@ -757,11 +778,17 @@ function dibujarBarras(){
   // Línea de referencia IDN red (cercafeStats)
   if(cercafeStats){
     const yRef=PAD.t+cH-(cH*(cercafeStats.idn/maxV));
-    ctx.strokeStyle='#6B1A2A';ctx.lineWidth=1.2;ctx.setLineDash([5,4]);
+    ctx.strokeStyle='#444444';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(PAD.l,yRef);ctx.lineTo(PAD.l+cW,yRef);ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle='#6B1A2A';ctx.font='bold 9px sans-serif';ctx.textAlign='left';
-    ctx.fillText('Cercafe '+cercafeStats.idn.toFixed(3),PAD.l+4,yRef-3);
+    // Etiqueta con fondo blanco para que se vea sobre las barras
+    const refTxt='Cercafe: '+cercafeStats.idn.toFixed(2);
+    ctx.font='bold 10px sans-serif';
+    const tw=ctx.measureText(refTxt).width+10;
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    ctx.fillRect(PAD.l+6,yRef-16,tw,15);
+    ctx.fillStyle='#333333';ctx.textAlign='left';
+    ctx.fillText(refTxt,PAD.l+11,yRef-5);
   }
 
   // Barras
