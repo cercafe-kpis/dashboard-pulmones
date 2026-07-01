@@ -104,9 +104,9 @@ tr:last-child td{border-bottom:none;}
 tr:hover td{background:#faf9f6;}
 .td-num{font-family:var(--mono);font-size:13px;color:#1a1814;text-align:right;}
 .td-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
-.sev-0{background:var(--gl);color:var(--g);}
-.sev-1{background:#eef2f8;color:#2a3a5c;}
-.sev-2{background:#fdf0e4;color:#6b3d0f;}
+.sev-0{background:#eef2f8;color:#2a3a5c;}
+.sev-1{background:#eaf4ee;color:#1e5c35;}
+.sev-2{background:#fef6e4;color:#7a4f00;}
 .sev-3{background:var(--redl);color:var(--red);}
 
 /* MINI CARDS lesiones */
@@ -722,7 +722,7 @@ function dibujarBarras(){
     const idns=lotes.map(l=>l.tce>0?l.ct/l.tce:0);
     return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
   });
-  const colors=vals.map(v=>v<0.56?'#257a65':v<=0.89?'#4a6491':v<=1.5?'#b06020':'#9e2a2a');
+  const colors=vals.map(v=>v===0?'#4a6491':v<0.56?'#257a65':v<=0.89?'#b07a00':'#9e2a2a');
 
   const el=document.getElementById('ch-granjas');
   const n=labels.length||1;
@@ -806,7 +806,7 @@ function dibujarDona(){
   ctx.clearRect(0,0,W,H);
 
   const total=Object.values(sevs).reduce((s,v)=>s+v,0)||1;
-  const colores=['#257a65','#4a6491','#b06020','#9e2a2a'];
+  const colores=['#4a6491','#257a65','#b07a00','#9e2a2a'];
   const etiquetas=Object.keys(sevs);
   const valores=Object.values(sevs);
 
@@ -887,7 +887,7 @@ function dibujarLinea(){
     ctx.fillText((maxV*i/4).toFixed(2),PAD.l-4,y+3);
   }
   // Líneas de referencia
-  ['#257a65','#b06200','#9e2a2a'].forEach((col,idx)=>{
+  ['#257a65','#b07a00','#9e2a2a'].forEach((col,idx)=>{
     const ref=[0,0.56,0.9][idx];
     if(ref<=maxV){
       const yr=PAD.t+cH-(cH*(ref/maxV));
@@ -917,7 +917,7 @@ function dibujarLinea(){
   // Puntos con color por severidad
   pts.forEach(([x,y],i)=>{
     const v=vals[i];
-    const col=v<0.56?'#257a65':v<=0.89?'#4a6491':v<=1.5?'#b06020':'#9e2a2a';
+    const col=v===0?'#4a6491':v<0.56?'#257a65':v<=0.89?'#b07a00':'#9e2a2a';
     ctx.beginPath();ctx.arc(x,y,4,0,2*Math.PI);
     ctx.fillStyle=col;ctx.fill();
     ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
@@ -1012,7 +1012,7 @@ function dibujarMensual(){
   // Barras
   meses.forEach((m,i)=>{
     const v=vals[i];
-    const col=v<0.56?'#257a65':v<=0.89?'#b06200':'#9e2a2a';
+    const col=v===0?'#4a6491':v<0.56?'#257a65':v<=0.89?'#b07a00':'#9e2a2a';
     const x=PAD.l+gap*i+gap/2-barW/2;
     const bh=Math.max(2,cH*(v/maxV));
     const y=PAD.t+cH-bh;
@@ -1199,7 +1199,7 @@ function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
       <div style="background:var(--surface);border:1px solid var(--borderl);border-radius:var(--rs);padding:12px;border-left:3px solid ${colorIdn};">
         <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">Recomendación</div>
         <div style="font-size:13px;line-height:1.6;color:var(--text);">${recIdn}</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--hint);">Escala IDN: <span style="color:#257a65;font-weight:500">Leve &lt;0.56</span> · <span style="color:#d4520a;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:var(--red);font-weight:500">Severo &gt;0.9</span></div>
+        <div style="margin-top:10px;font-size:11px;color:var(--hint);">Escala IDN: <span style="color:#4a6491;font-weight:500">Sin lesión = 0</span> · <span style="color:#257a65;font-weight:500">Leve &lt;0.56</span> · <span style="color:#b07a00;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:var(--red);font-weight:500">Severo &gt;0.9</span></div>
       </div>
     </div>`;
 }
