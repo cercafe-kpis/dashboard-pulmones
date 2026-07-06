@@ -94,6 +94,20 @@ canvas{display:block;width:100% !important;}
 .tab{padding:5px 16px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:none;}
 .tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1);}
 
+.main-tabs{display:flex;gap:2px;margin-bottom:1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:4px;width:fit-content;}
+.main-tab{padding:8px 20px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:none;}
+.main-tab.active{background:var(--g);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+
+.chk-list{max-height:230px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;background:var(--surface);}
+.chk-item{display:flex;align-items:center;gap:7px;padding:3px 2px;font-size:12.5px;}
+.chk-item input{cursor:pointer;width:14px;height:14px;accent-color:var(--g);}
+.chk-item label{cursor:pointer;color:var(--text);}
+.chk-toolbar{display:flex;gap:6px;margin-bottom:6px;}
+.chk-toolbar button{font-size:11px;padding:3px 10px;border:1px solid var(--border);border-radius:4px;background:#fff;cursor:pointer;color:var(--muted);}
+.chk-toolbar button:hover{background:var(--surface);}
+.comp-filtros{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:800px){.comp-filtros{grid-template-columns:1fr;}}
+
 .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem;}
 .table-scroll{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -111,11 +125,14 @@ tr:hover td{background:#faf9f6;}
 
 /* MINI CARDS lesiones */
 .mini-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:.55rem .8rem;height:82px;display:flex;flex-direction:column;}
+.mini-card.withref{height:98px;}
 .mini-card .mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;line-height:1.2;margin-top:auto;}
 .mini-card .mc-val{font-size:13px;font-weight:600;font-family:var(--mono);line-height:1.2;white-space:nowrap;display:flex;align-items:baseline;gap:3px;}
 .mini-card .mc-val .mc-n{font-size:16px;font-weight:700;}
 .mini-card.les .mc-val{color:#257a65;}
 .mini-card.art .mc-val{color:#4a6491;}
+.mini-card .mc-cercafe{font-size:9.5px;color:var(--hint);margin-top:3px;border-top:1px solid var(--borderl);padding-top:3px;}
+.mini-card .mc-cercafe strong{color:var(--muted);font-family:var(--mono);}
 .no-data{text-align:center;padding:2.5rem;color:var(--hint);font-size:13px;}
 
 /* PDF MODAL */
@@ -199,7 +216,7 @@ const CONFIG={
         </div>
         <div class="field">
           <label class="lbl">Granja</label>
-          <select id="f-granja"><option value="">Todas las granjas</option></select>
+          <select id="f-granja" onchange="aplicarFiltros()"></select>
         </div>
         <div class="field">
           <label class="lbl">Consecutivo</label>
@@ -220,11 +237,18 @@ const CONFIG={
       </div>
     </div>
 
+    <div class="main-tabs" id="main-tabs">
+      <button class="main-tab active" id="mtab-granja" onclick="showMainTab('granja')">Análisis por granja</button>
+      <button class="main-tab" id="mtab-comp" onclick="showMainTab('comp')">Comparativo entre granjas</button>
+    </div>
+
     <div class="loading" id="loading" style="display:none">
       <div class="spin"></div><div>Cargando datos...</div>
     </div>
 
     <div id="contenido" style="display:none">
+
+      <div id="panel-granja">
 
       <div class="sec">Indicadores principales</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
@@ -233,7 +257,7 @@ const CONFIG={
         <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">cerdos con lesión</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-neum">—</span></div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Pérdidas GDP totales</div><div class="kpi-val c3" id="k-gdp">—</div><div class="kpi-sub">kg estimados</div></div>
         <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis total</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div><div style="font-size:10px;color:var(--muted);margin-top:3px;display:flex;gap:8px;"><span>Leve: <strong id="k-pleur-leve">—</strong></span><span>Severa: <strong id="k-pleur-sev">—</strong></span></div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-pleur">—</span></div></div>
-        <div class="kpi-card c4"><div class="kpi-lbl">Poliserositis</div><div class="kpi-val c4" id="k-poliser">—</div><div class="kpi-sub" id="k-poliser-sub">pleuritis + pericarditis</div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Poliserositis</div><div class="kpi-val c4" id="k-poliser">—</div><div class="kpi-sub" id="k-poliser-sub">pleuritis + pericarditis</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-poliser">—</span></div></div>
       </div>
 
       <!-- TOTAL + OTRAS LESIONES -->
@@ -247,20 +271,20 @@ const CONFIG={
         <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
           <!-- Lesiones -->
           <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
-            <div class="mini-card les"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span><span class="mc-pct" id="k-nint-p">—</span></div></div>
-            <div class="mini-card les"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span><span class="mc-pct" id="k-absc-p">—</span></div></div>
-            <div class="mini-card les"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span><span class="mc-pct" id="k-nodu-p">—</span></div></div>
-            <div class="mini-card les"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span><span class="mc-pct" id="k-peri-p">—</span></div></div>
-            <div class="mini-card les"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span><span class="mc-pct" id="k-manc-p">—</span></div></div>
+            <div class="mini-card les withref"><div class="mc-lbl">Neumonía intersticial</div><div class="mc-val"><span class="mc-n" id="k-nint-n">—</span><span class="mc-pct" id="k-nint-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-nint">—</strong></div></div>
+            <div class="mini-card les withref"><div class="mc-lbl">Absceso pulmón</div><div class="mc-val"><span class="mc-n" id="k-absc-n">—</span><span class="mc-pct" id="k-absc-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-absc">—</strong></div></div>
+            <div class="mini-card les withref"><div class="mc-lbl">Nódulo pulmón</div><div class="mc-val"><span class="mc-n" id="k-nodu-n">—</span><span class="mc-pct" id="k-nodu-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-nodu">—</strong></div></div>
+            <div class="mini-card les withref"><div class="mc-lbl">Pericarditis</div><div class="mc-val"><span class="mc-n" id="k-peri-n">—</span><span class="mc-pct" id="k-peri-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-peri">—</strong></div></div>
+            <div class="mini-card les withref"><div class="mc-lbl">Manchas de leche</div><div class="mc-val"><span class="mc-n" id="k-manc-n">—</span><span class="mc-pct" id="k-manc-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-manc">—</strong></div></div>
           </div>
           <!-- Artefactos -->
           <div style="border:1px solid var(--borderl);border-radius:var(--rs);padding:6px 8px;">
             <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px;">Artefactos en pulmón sano · <span style="font-weight:400;font-style:italic;">Medición sobre cerdos sin ninguna lesión</span></div>
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-              <div class="mini-card art"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span><span class="mc-pct" id="k-agua-p">—</span></div></div>
-              <div class="mini-card art"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span><span class="mc-pct" id="k-sang-p">—</span></div></div>
-              <div class="mini-card art"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span><span class="mc-pct" id="k-pete-p">—</span></div></div>
-              <div class="mini-card art" style="border-color:var(--g);"><div class="mc-lbl" style="color:var(--g);">Ambos artefactos</div><div class="mc-val"><span class="mc-n" id="k-ambos-n" style="color:var(--g);">—</span><span class="mc-pct" id="k-ambos-p">—</span></div></div>
+              <div class="mini-card art withref"><div class="mc-lbl">Artefacto agua</div><div class="mc-val"><span class="mc-n" id="k-agua-n">—</span><span class="mc-pct" id="k-agua-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-agua">—</strong></div></div>
+              <div class="mini-card art withref"><div class="mc-lbl">Artefacto sangre</div><div class="mc-val"><span class="mc-n" id="k-sang-n">—</span><span class="mc-pct" id="k-sang-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-sang">—</strong></div></div>
+              <div class="mini-card art withref"><div class="mc-lbl">Petequias</div><div class="mc-val"><span class="mc-n" id="k-pete-n">—</span><span class="mc-pct" id="k-pete-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-pete">—</strong></div></div>
+              <div class="mini-card art withref" style="border-color:var(--g);"><div class="mc-lbl" style="color:var(--g);">Ambos artefactos</div><div class="mc-val"><span class="mc-n" id="k-ambos-n" style="color:var(--g);">—</span><span class="mc-pct" id="k-ambos-p">—</span></div><div class="mc-cercafe">Cercafe: <strong id="cr-ambos">—</strong></div></div>
             </div>
           </div>
         </div>
@@ -275,21 +299,6 @@ const CONFIG={
 
       <div class="sec">Gráficas</div>
       <div class="charts-grid">
-        <div class="chart-card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <div class="chart-title" style="margin-bottom:0;">IDN promedio por granja</div>
-          <div style="display:flex;gap:4px;">
-            <button id="btn-asc" onclick="setOrdenBarras('asc')" style="padding:3px 10px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;">↑ Asc</button>
-            <button id="btn-desc" onclick="setOrdenBarras('desc')" style="padding:3px 10px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;">↓ Des</button>
-            <button id="btn-alfa" onclick="setOrdenBarras('alfa')" style="padding:3px 10px;font-size:11px;border:1px solid var(--border);border-radius:4px;background:var(--g);color:#fff;cursor:pointer;">A-Z</button>
-          </div>
-        </div>
-          <canvas id="ch-granjas" height="320"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">Distribución de severidad</div>
-          <canvas id="ch-sev" height="180"></canvas>
-        </div>
         <div class="chart-card full">
           <div class="chart-title">Evolución IDN por lote &nbsp;<span style="font-weight:400;color:var(--hint);font-size:11px">cada punto = un consecutivo</span></div>
           <canvas id="ch-linea" height="180"></canvas>
@@ -298,6 +307,36 @@ const CONFIG={
           <div class="chart-title">IDN promedio mensual</div>
           <canvas id="ch-mensual" height="180"></canvas>
         </div>
+      </div>
+
+      </div>
+
+      <div id="panel-comp" style="display:none">
+
+      <div class="sec">Filtros de comparación</div>
+      <div class="filtros-card" style="margin-bottom:1rem;">
+        <div class="comp-filtros">
+          <div>
+            <label class="lbl" style="display:block;margin-bottom:6px;">Granjas a comparar</label>
+            <div class="chk-toolbar">
+              <button type="button" onclick="compSelectAllGranjas(true)">Todas</button>
+              <button type="button" onclick="compSelectAllGranjas(false)">Ninguna</button>
+            </div>
+            <div id="comp-granjas-list" class="chk-list"></div>
+          </div>
+          <div>
+            <label class="lbl" style="display:block;margin-bottom:6px;">Indicadores a comparar</label>
+            <div id="comp-indicadores-list" class="chk-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">Comparativo de indicadores por granja</div>
+      <div id="comp-charts" class="charts-grid"></div>
+
+      <div class="sec">Distribución de severidad (red)</div>
+      <div class="chart-card" style="margin-bottom:1rem;">
+        <canvas id="ch-sev" height="180"></canvas>
       </div>
 
       <div class="sec">Resultados por tabla</div>
@@ -324,6 +363,8 @@ const CONFIG={
             <th>GDP total (kg)</th><th>Severidad predominante</th>
           </tr></thead><tbody id="tbody-d"></tbody></table>
         </div></div>
+      </div>
+
       </div>
 
     </div>
@@ -405,13 +446,47 @@ function calcCercafeStats(){
   const pleurLeve=allData.filter(d=>d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true').length;
   const pleurSev=allData.filter(d=>d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true').length;
   const pleur=pleurLeve+pleurSev;
-  cercafeStats={idn,pctConsol,neum,n,pleur};
+  const poliser=allData.filter(d=>(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true'||d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')&&(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true')).length;
+  // Lesiones normales (sobre el total de la red)
+  const lesNormales={nint:'neumonia_intersticial', absc:'absceso_pulmon', nodu:'nodulo_pulmon', peri:'pericarditis', manc:'manchas_leche'};
+  const lesPct={};
+  Object.entries(lesNormales).forEach(([key,campo])=>{
+    const cnt=allData.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
+    lesPct[key]=cnt/n*100;
+  });
+  // Artefactos (sobre cerdos con pulmón sano de toda la red)
+  const sanosRed=allData.filter(d=>
+    (parseInt(d.categoria)||0)===0 &&
+    (parseFloat(d.consolidacion_total)||0)===0 &&
+    !(d.neumonia_intersticial===true||d.neumonia_intersticial===1||d.neumonia_intersticial==='true') &&
+    !(d.absceso_pulmon===true||d.absceso_pulmon===1||d.absceso_pulmon==='true') &&
+    !(d.nodulo_pulmon===true||d.nodulo_pulmon===1||d.nodulo_pulmon==='true') &&
+    !(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true') &&
+    !(d.manchas_leche===true||d.manchas_leche===1||d.manchas_leche==='true') &&
+    !(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true') &&
+    !(d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')
+  );
+  const artefactos={agua:'artefacto_agua', sang:'artefacto_sangre', pete:'petequias'};
+  const artPct={};
+  Object.entries(artefactos).forEach(([key,campo])=>{
+    const cnt=sanosRed.filter(d=>d[campo]===true||d[campo]===1||d[campo]==='true').length;
+    artPct[key]=cnt/n*100;
+  });
+  const cntAmbosRed=sanosRed.filter(d=>{
+    const a=[d.artefacto_agua,d.artefacto_sangre,d.petequias].filter(v=>v===true||v===1||v==='true').length;
+    return a>=2;
+  }).length;
+  artPct.ambos=cntAmbosRed/n*100;
+  cercafeStats={idn,pctConsol,neum,n,pleur,poliser,lesPct,artPct};
   // Mostrar en cards
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('cr-idn', idn.toFixed(2));
   set('cr-consol', pctConsol.toFixed(2)+'%');
   set('cr-neum', (neum/n*100).toFixed(1)+'%');
   set('cr-pleur', (pleur/n*100).toFixed(1)+'%');
+  set('cr-poliser', (poliser/n*100).toFixed(1)+'%');
+  ['nint','absc','nodu','peri','manc'].forEach(k=>set('cr-'+k, lesPct[k].toFixed(1)+'%'));
+  ['agua','sang','pete','ambos'].forEach(k=>set('cr-'+k, artPct[k].toFixed(1)+'%'));
 }
 
 async function doLogin(){
@@ -520,28 +595,29 @@ function poblarFiltros(){
   } else {
     selA.closest('div').style.display='none';
   }
-  // Poblar granjas — filtrar por asociado si aplica
+  // Poblar granjas — filtrar por asociado si aplica (sin opción "Todas": granja es obligatoria)
   const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort()
     .filter(g=>!userAsociado||GRANJA_ASOCIADO[g.toUpperCase()]===userAsociado);
   const sel=document.getElementById('f-granja');
-  sel.innerHTML='<option value="">Todas las granjas</option>';
+  sel.innerHTML='';
   granjas.forEach(g=>sel.innerHTML+=`<option value="${g}">${GRANJA_VISTA[g.toUpperCase()]||g}</option>`);
+  if(granjas.length)sel.value=granjas[0];
   // Poblar consecutivos — filtrar por asociado si aplica
   const dataPoblar=userAsociado?allData.filter(d=>GRANJA_ASOCIADO[(d.granja_nombre||"").toUpperCase()]===userAsociado):allData;
   poblarConsec(dataPoblar);
+  poblarComparativoFiltros();
 }
 
 function filtrarPorAsociado(){
   const asoc=userAsociado||document.getElementById('f-asociado').value;
-  // Resetear granja al cambiar asociado
-  document.getElementById('f-granja').value='';
-  // Filtrar granjas del select según asociado
+  // Filtrar granjas del select según asociado y seleccionar la primera disponible
   const sel=document.getElementById('f-granja');
-  const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort();
-  sel.innerHTML='<option value="">Todas las granjas</option>';
-  granjas
-    .filter(g=>!asoc||GRANJA_ASOCIADO[g.toUpperCase()]===asoc)
-    .forEach(g=>sel.innerHTML+=`<option value="${g}">${GRANJA_VISTA[g.toUpperCase()]||g}</option>`);
+  const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort()
+    .filter(g=>!asoc||GRANJA_ASOCIADO[g.toUpperCase()]===asoc);
+  sel.innerHTML='';
+  granjas.forEach(g=>sel.innerHTML+=`<option value="${g}">${GRANJA_VISTA[g.toUpperCase()]||g}</option>`);
+  if(granjas.length)sel.value=granjas[0];
+  poblarComparativoFiltros();
   aplicarFiltros();
 }
 
@@ -569,15 +645,16 @@ function aplicarFiltros(){
   if(g)poblarConsec(filteredData);
   actualizarKPIs();
   dibujarGraficas();
-  actualizarTablas();
+  dibujarComparativo();
   document.getElementById('contenido').style.display='block';
   // Redibujar gráficas después de que el DOM calcule los tamaños correctos
-  setTimeout(()=>dibujarGraficas(), 100);
-  setTimeout(()=>dibujarGraficas(), 400);
+  setTimeout(()=>{dibujarGraficas();dibujarComparativo();}, 100);
+  setTimeout(()=>{dibujarGraficas();dibujarComparativo();}, 400);
 }
 
 function limpiarFiltros(){
-  ['f-asociado','f-granja','f-consec','f-desde','f-hasta'].forEach(id=>document.getElementById(id).value='');
+  // La granja es obligatoria: se conserva la selección actual, solo se limpian los demás filtros
+  ['f-asociado','f-consec','f-desde','f-hasta'].forEach(id=>document.getElementById(id).value='');
   poblarConsec(allData);
   aplicarFiltros();
 }
@@ -699,10 +776,15 @@ function actualizarKPIs(){
 
 /* ── GRÁFICAS EN CANVAS NATIVO ── */
 function dibujarGraficas(){
-  dibujarBarras();
-  dibujarDona();
   dibujarLinea();
   dibujarMensual();
+}
+
+function dibujarComparativo(){
+  const compData=getCompFilteredData();
+  dibujarDona(compData);
+  actualizarTablas(compData);
+  renderComparativo();
 }
 
 function limpiarCanvas(id){
@@ -712,114 +794,11 @@ function limpiarCanvas(id){
   return{c,ctx};
 }
 
-let _ordenBarras='alfa';
-function setOrdenBarras(orden){
-  _ordenBarras=orden;
-  ['btn-asc','btn-desc','btn-alfa'].forEach(id=>{
-    const b=document.getElementById(id);
-    if(b)b.style.background=id.endsWith(orden)?'var(--g)':'var(--surface)';
-    if(b)b.style.color=id.endsWith(orden)?'#fff':'';
-  });
-  dibujarBarras();
-}
-function dibujarBarras(){
-  const porG={};
-  filteredData.forEach(d=>{
-    const g=d.granja_nombre||'Sin granja';
-    const loteKey=g+'_'+(d.consecutivo||'');
-    if(!porG[g])porG[g]={lotes:{}};
-    if(!porG[g].lotes[loteKey])porG[g].lotes[loteKey]={ct:0,tce:0};
-    porG[g].lotes[loteKey].ct+=parseInt(d.categoria)||0;
-    porG[g].lotes[loteKey].tce++;
-  });
-  let labels=Object.keys(porG).sort();
-  let valsMap={}; labels.forEach(g=>{
-    const lotes=Object.values(porG[g].lotes);
-    const idns=lotes.map(l=>l.tce>0?l.ct/l.tce:0);
-    valsMap[g]=idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
-  });
-  if(_ordenBarras==='asc') labels.sort((a,b)=>valsMap[a]-valsMap[b]);
-  else if(_ordenBarras==='desc') labels.sort((a,b)=>valsMap[b]-valsMap[a]);
-  // else 'alfa' ya está ordenado
-  const labelsVista=labels.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
-  const vals=labels.map(g=>valsMap[g]);
-  const colors=vals.map(v=>v===0?'#4a6491':v<0.56?'#257a65':v<=0.89?'#b07a00':'#9e2a2a');
 
-  const el=document.getElementById('ch-granjas');
-  const n=labels.length||1;
-
-  // Altura dinámica: base + espacio para nombres diagonales
-  const LBL_H=80;
-  const BAR_ZONE=260;
-  const H=BAR_ZONE+LBL_H;
-  const W=Math.max(el.parentElement.clientWidth-32||500, n*52);
-  el.style.width='100%';
-  el.style.height=H+'px';
-  const ctx=setupCanvas(el,W,H);
-  ctx.clearRect(0,0,W,H);
-
-  if(!labels.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
-
-  const PAD={t:24,r:16,b:LBL_H,l:46};
-  const cW=W-PAD.l-PAD.r, cH=BAR_ZONE-PAD.t;
-  const maxV=Math.max(...vals,0.5)*1.08; // margen arriba
-  const gap=cW/n;
-  const barW=Math.max(12,Math.min(38,gap*0.55));
-
-  // Grilla
-  ctx.strokeStyle='#ede4e7';ctx.lineWidth=1;
-  for(let i=0;i<=5;i++){
-    const y=PAD.t+cH-(cH*i/5);
-    ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
-    ctx.fillStyle='#444';ctx.font='10px monospace';ctx.textAlign='right';
-    ctx.fillText((maxV*i/5).toFixed(2),PAD.l-4,y+3);
-  }
-
-  // Línea de referencia IDN red (cercafeStats)
-  if(cercafeStats){
-    const yRef=PAD.t+cH-(cH*(cercafeStats.idn/maxV));
-    ctx.strokeStyle='#444444';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
-    ctx.beginPath();ctx.moveTo(PAD.l,yRef);ctx.lineTo(PAD.l+cW,yRef);ctx.stroke();
-    ctx.setLineDash([]);
-    // Etiqueta con fondo blanco para que se vea sobre las barras
-    const refTxt='Cercafe: '+cercafeStats.idn.toFixed(2);
-    ctx.font='bold 10px sans-serif';
-    const tw=ctx.measureText(refTxt).width+10;
-    ctx.fillStyle='rgba(255,255,255,0.85)';
-    ctx.fillRect(PAD.l+6,yRef-16,tw,15);
-    ctx.fillStyle='#333333';ctx.textAlign='left';
-    ctx.fillText(refTxt,PAD.l+11,yRef-5);
-  }
-
-  // Barras
-  labels.forEach((lbl,i)=>{
-    const vista=labelsVista[i];
-    const x=PAD.l+gap*i+gap/2-barW/2;
-    const bh=Math.max(2,cH*(vals[i]/maxV));
-    const y=PAD.t+cH-bh;
-    ctx.fillStyle=colors[i];
-    ctx.beginPath();
-    if(ctx.roundRect)ctx.roundRect(x,y,barW,bh,3);
-    else ctx.rect(x,y,barW,bh);
-    ctx.fill();
-
-    // Valor encima de barra
-    ctx.fillStyle='#1a1814';ctx.font='bold 11px monospace';ctx.textAlign='center';
-    ctx.fillText(vals[i].toFixed(3),x+barW/2,y-4);
-
-    // Nombre diagonal
-    ctx.save();
-    ctx.translate(x+barW/2, PAD.t+cH+8);
-    ctx.rotate(-Math.PI/4);
-    ctx.fillStyle='#1a1814';ctx.font='12px sans-serif';ctx.textAlign='right';
-    ctx.fillText(vista,0,0);
-    ctx.restore();
-  });
-}
-
-function dibujarDona(){
+function dibujarDona(data){
+  data=data||filteredData;
   const sevs={Sin:0,Leve:0,Moderada:0,Severa:0};
-  filteredData.forEach(d=>{
+  data.forEach(d=>{
     const consol=parseFloat(d.consolidacion_total)||0;
     if(consol<=0)sevs.Sin++;
     else if(consol<=10)sevs.Leve++;
@@ -828,7 +807,7 @@ function dibujarDona(){
   });
 
   const el=document.getElementById('ch-sev');
-  const W=el.parentElement.clientWidth-32||300, H=220;
+  const W=Math.max(el.parentElement.clientWidth-32, 300), H=220;
   const ctx=setupCanvas(el,W,H);
   ctx.clearRect(0,0,W,H);
 
@@ -1057,10 +1036,11 @@ function dibujarMensual(){
   });
 }
 
-function actualizarTablas(){
+function actualizarTablas(data){
+  data=data||filteredData;
   // Por granja — IDN correcto: promedio de CT/TCE por lote
   const porG={};
-  filteredData.forEach(d=>{
+  data.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
     if(!porG[g])porG[g]={lotes:{},n:0,neum:0,pleur:0,sumGdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0}};
     const pg=porG[g];
@@ -1104,10 +1084,10 @@ function actualizarTablas(){
   // Detalle por consecutivo (agrupado)
   const tbD=document.getElementById('tbody-d');
   tbD.innerHTML='';
-  if(!filteredData.length){tbD.innerHTML='<tr><td colspan="9" class="no-data">Sin datos</td></tr>';return;}
+  if(!data.length){tbD.innerHTML='<tr><td colspan="9" class="no-data">Sin datos</td></tr>';return;}
   // Agrupar por granja+consecutivo
   const porLote={};
-  filteredData.forEach(d=>{
+  data.forEach(d=>{
     const key=(d.granja_nombre||'')+'|||'+(d.consecutivo||'');
     if(!porLote[key]){
       const f=(d.fecha_inspeccion||'').split('T')[0];
@@ -1141,6 +1121,216 @@ function actualizarTablas(){
   });
 }
 
+function showMainTab(t){
+  document.getElementById('panel-granja').style.display=t==='granja'?'block':'none';
+  document.getElementById('panel-comp').style.display=t==='comp'?'block':'none';
+  document.getElementById('mtab-granja').className='main-tab'+(t==='granja'?' active':'');
+  document.getElementById('mtab-comp').className='main-tab'+(t==='comp'?' active':'');
+  if(t==='comp'){
+    dibujarComparativo();
+    setTimeout(dibujarComparativo,120);
+  } else {
+    dibujarGraficas();
+    setTimeout(dibujarGraficas,120);
+  }
+}
+
+/* ── PESTAÑA COMPARATIVO ENTRE GRANJAS ── */
+const INDICADORES_COMP=[
+  {key:'idn',     lbl:'IDN (CT/TCE)',            color:'#6B1A2A', fmt:v=>v.toFixed(2)},
+  {key:'consol',  lbl:'% Consolidación',          color:'#9e2a2a', fmt:v=>v.toFixed(2)+'%'},
+  {key:'neum',    lbl:'% Frecuencia neumonía',    color:'#b07a00', fmt:v=>v.toFixed(1)+'%'},
+  {key:'pleur',   lbl:'% Frecuencia pleuritis',   color:'#185fa5', fmt:v=>v.toFixed(1)+'%'},
+  {key:'poliser', lbl:'% Poliserositis',          color:'#4a3080', fmt:v=>v.toFixed(1)+'%'},
+  {key:'gdp',     lbl:'Pérdidas GDP (kg)',        color:'#4a6491', fmt:v=>v.toFixed(1)},
+];
+
+function getCompFilteredData(){
+  // Datos para la pestaña comparativa: respeta asociado y rango de fechas, pero no la granja/consecutivo únicos
+  const asoc=userAsociado||document.getElementById('f-asociado').value;
+  const d=document.getElementById('f-desde').value;
+  const h=document.getElementById('f-hasta').value;
+  return allData.filter(r=>{
+    if(asoc&&GRANJA_ASOCIADO[(r.granja_nombre||"").toUpperCase()]!==asoc)return false;
+    if(d&&r.fecha_inspeccion&&r.fecha_inspeccion<d)return false;
+    if(h&&r.fecha_inspeccion&&r.fecha_inspeccion>h)return false;
+    return true;
+  });
+}
+
+function computeStatsByFarm(data){
+  const porG={};
+  data.forEach(d=>{
+    const g=d.granja_nombre||'Sin granja';
+    if(!porG[g])porG[g]={lotes:{},n:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0};
+    const pg=porG[g];
+    pg.n++;
+    const lk=d.consecutivo||'_';
+    if(!pg.lotes[lk])pg.lotes[lk]={ct:0,tce:0};
+    pg.lotes[lk].ct+=parseInt(d.categoria)||0;
+    pg.lotes[lk].tce++;
+    const cat=parseInt(d.categoria)||0;
+    const consol=parseFloat(d.consolidacion_total)||0;
+    pg.sumConsol+=consol;
+    if(cat>0&&consol>0)pg.neum++;
+    const pleurLeve=(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true');
+    const pleurSev=(d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true');
+    if(pleurLeve||pleurSev)pg.pleur++;
+    if((pleurLeve||pleurSev)&&(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true'))pg.poliser++;
+    pg.sumGdp+=parseFloat(d.perdida_gdp_kg)||0;
+  });
+  const out={};
+  Object.keys(porG).forEach(g=>{
+    const pg=porG[g];
+    const lotesArr=Object.values(pg.lotes);
+    const idn=lotesArr.length?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
+    out[g]={
+      idn,
+      consol: pg.n?pg.sumConsol/pg.n:0,
+      neum: pg.n?pg.neum/pg.n*100:0,
+      pleur: pg.n?pg.pleur/pg.n*100:0,
+      poliser: pg.n?pg.poliser/pg.n*100:0,
+      gdp: pg.sumGdp,
+      n: pg.n
+    };
+  });
+  return out;
+}
+
+let _compGranjasInit=false;
+function poblarComparativoFiltros(){
+  const asoc=userAsociado||document.getElementById('f-asociado').value;
+  const granjas=[...new Set(allData.map(d=>d.granja_nombre).filter(Boolean))].sort()
+    .filter(g=>!asoc||GRANJA_ASOCIADO[g.toUpperCase()]===asoc);
+
+  // Recordar selección previa de granjas (si ya existía)
+  const prevChecked=new Set(
+    [...document.querySelectorAll('#comp-granjas-list input[type=checkbox]:checked')].map(i=>i.value)
+  );
+  const listG=document.getElementById('comp-granjas-list');
+  listG.innerHTML=granjas.map(g=>{
+    const checked=_compGranjasInit ? (prevChecked.has(g)?'checked':'') : 'checked';
+    const vista=GRANJA_VISTA[g.toUpperCase()]||g;
+    const id='chk-g-'+g.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="chk-item"><input type="checkbox" id="${id}" value="${g}" ${checked} onchange="renderComparativo()"><label for="${id}">${vista}</label></div>`;
+  }).join('');
+  _compGranjasInit=true;
+
+  // Indicadores: se listan una sola vez
+  const listI=document.getElementById('comp-indicadores-list');
+  if(!listI.dataset.built){
+    listI.innerHTML=INDICADORES_COMP.map((ind,i)=>{
+      const checked=i===0?'checked':''; // por defecto solo IDN, igual que el gráfico original
+      return `<div class="chk-item"><input type="checkbox" id="chk-i-${ind.key}" value="${ind.key}" ${checked} onchange="renderComparativo()"><label for="chk-i-${ind.key}">${ind.lbl}</label></div>`;
+    }).join('');
+    listI.dataset.built='1';
+  }
+}
+
+function compSelectAllGranjas(marcar){
+  document.querySelectorAll('#comp-granjas-list input[type=checkbox]').forEach(chk=>chk.checked=marcar);
+  renderComparativo();
+}
+
+function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, refLbl){
+  const n=labels.length||1;
+  const LBL_H=76, BAR_ZONE=220, H=BAR_ZONE+LBL_H;
+  const W=Math.max(canvasEl.parentElement.clientWidth-32||400, n*56);
+  canvasEl.style.width='100%'; canvasEl.style.height=H+'px';
+  const ctx=setupCanvas(canvasEl,W,H);
+  ctx.clearRect(0,0,W,H);
+
+  if(!labels.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Seleccione al menos una granja',W/2,H/2);return;}
+
+  const PAD={t:22,r:16,b:LBL_H,l:52};
+  const cW=W-PAD.l-PAD.r, cH=BAR_ZONE-PAD.t;
+  const maxV=Math.max(...vals,0.001)*1.15;
+  const gap=cW/n;
+  const barW=Math.max(12,Math.min(38,gap*0.55));
+
+  ctx.strokeStyle='#ede4e7';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=PAD.t+cH-(cH*i/4);
+    ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);ctx.stroke();
+    ctx.fillStyle='#444';ctx.font='10px monospace';ctx.textAlign='right';
+    ctx.fillText(fmt(maxV*i/4),PAD.l-4,y+3);
+  }
+
+  if(refVal!==undefined&&refVal!==null){
+    const yRef=PAD.t+cH-(cH*(refVal/maxV));
+    ctx.strokeStyle='#444444';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(PAD.l,yRef);ctx.lineTo(PAD.l+cW,yRef);ctx.stroke();
+    ctx.setLineDash([]);
+    const refTxt=(refLbl||'Cercafe')+': '+fmt(refVal);
+    ctx.font='bold 10px sans-serif';
+    const tw=ctx.measureText(refTxt).width+10;
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    ctx.fillRect(PAD.l+6,yRef-16,tw,15);
+    ctx.fillStyle='#333333';ctx.textAlign='left';
+    ctx.fillText(refTxt,PAD.l+11,yRef-5);
+  }
+
+  labels.forEach((lbl,i)=>{
+    const x=PAD.l+gap*i+gap/2-barW/2;
+    const bh=Math.max(2,cH*(vals[i]/maxV));
+    const y=PAD.t+cH-bh;
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x,y,barW,bh,3);
+    else ctx.rect(x,y,barW,bh);
+    ctx.fill();
+
+    ctx.fillStyle='#1a1814';ctx.font='bold 10px monospace';ctx.textAlign='center';
+    ctx.fillText(fmt(vals[i]),x+barW/2,y-4);
+
+    ctx.save();
+    ctx.translate(x+barW/2, PAD.t+cH+8);
+    ctx.rotate(-Math.PI/4);
+    ctx.fillStyle='#1a1814';ctx.font='11px sans-serif';ctx.textAlign='right';
+    ctx.fillText(lbl,0,0);
+    ctx.restore();
+  });
+}
+
+function renderComparativo(){
+  const contDiv=document.getElementById('comp-charts');
+  if(!contDiv)return;
+
+  const granjasSel=[...document.querySelectorAll('#comp-granjas-list input[type=checkbox]:checked')].map(i=>i.value).sort();
+  const indicadoresSel=INDICADORES_COMP.filter(ind=>{
+    const chk=document.getElementById('chk-i-'+ind.key);
+    return chk&&chk.checked;
+  });
+
+  const compData=getCompFilteredData().filter(d=>granjasSel.includes(d.granja_nombre));
+  const stats=computeStatsByFarm(compData);
+  const labels=granjasSel.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
+
+  if(!indicadoresSel.length){
+    contDiv.innerHTML='<div class="chart-card full"><div style="text-align:center;color:var(--hint);padding:2rem;font-size:13px;">Seleccione al menos un indicador para comparar</div></div>';
+    return;
+  }
+
+  // Crear/actualizar un chart-card por indicador seleccionado
+  contDiv.innerHTML=indicadoresSel.map(ind=>`
+    <div class="chart-card">
+      <div class="chart-title">${ind.lbl}</div>
+      <canvas id="ch-comp-${ind.key}"></canvas>
+    </div>`).join('');
+
+  indicadoresSel.forEach(ind=>{
+    const vals=granjasSel.map(g=>stats[g]?stats[g][ind.key]:0);
+    const canvasEl=document.getElementById('ch-comp-'+ind.key);
+    const refVal=cercafeStats?(ind.key==='idn'?cercafeStats.idn
+      :ind.key==='consol'?cercafeStats.pctConsol
+      :ind.key==='neum'?(cercafeStats.neum/cercafeStats.n*100)
+      :ind.key==='pleur'?(cercafeStats.pleur/cercafeStats.n*100)
+      :ind.key==='poliser'?(cercafeStats.poliser/cercafeStats.n*100)
+      :null):null;
+    if(canvasEl)drawBarChartComparativo(canvasEl, labels, vals, ind.color, ind.fmt, refVal, 'Cercafe');
+  });
+}
+
 function showTab(t){
   document.getElementById('vista-g').style.display=t==='g'?'block':'none';
   document.getElementById('vista-d').style.display=t==='d'?'block':'none';
@@ -1155,7 +1345,7 @@ function showToast(msg,tipo){
 }
 
 window.addEventListener('resize',()=>{
-  if(filteredData.length)dibujarGraficas();
+  if(filteredData.length){dibujarGraficas();dibujarComparativo();}
 });
 
 function exportarPDF(){
@@ -1289,7 +1479,7 @@ function generarAnalisis(kpis, n){
 function imprimirPDF(){
   cerrarPDF();
 
-  const imgGranjas=document.getElementById('ch-granjas').toDataURL('image/png');
+  const imgMensual=document.getElementById('ch-mensual').toDataURL('image/png');
   const imgSev=document.getElementById('ch-sev').toDataURL('image/png');
   const imgLinea=document.getElementById('ch-linea').toDataURL('image/png');
 
@@ -1359,8 +1549,8 @@ function imprimirPDF(){
     <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;">Gráficas</div>
     <div style="display:grid;grid-template-columns:3fr 1fr;gap:10px;margin-bottom:8px;align-items:start;">
       <div>
-        <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">IDN promedio por granja</div>
-        <img src="${imgGranjas}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;">
+        <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">IDN promedio mensual</div>
+        <img src="${imgMensual}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;">
       </div>
       <div>
         <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">Distribución de severidad</div>
