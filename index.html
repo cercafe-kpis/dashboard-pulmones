@@ -326,6 +326,10 @@ const CONFIG={
           </div>
           <div>
             <label class="lbl" style="display:block;margin-bottom:6px;">Indicadores a comparar</label>
+            <div class="chk-toolbar">
+              <button type="button" onclick="compSelectAllIndicadores(true)">Todos</button>
+              <button type="button" onclick="compSelectAllIndicadores(false)">Ninguno</button>
+            </div>
             <div id="comp-indicadores-list" class="chk-list"></div>
           </div>
         </div>
@@ -436,6 +440,7 @@ function setupCanvas(el, W, H){
   return ctx;
 }
 let allData=[],filteredData=[],cercafeStats=null;
+actualizarVisibilidadFiltros('granja');
 
 function calcCercafeStats(){
   // Calcular KPIs de toda la red (allData sin filtro) y guardarlos
@@ -1121,11 +1126,26 @@ function actualizarTablas(data){
   });
 }
 
+function actualizarVisibilidadFiltros(t){
+  // Análisis por granja: Granja + Consecutivo (sin Asociado)
+  // Comparativo entre granjas: solo Asociado (el filtro de granja se reemplaza por el selector múltiple de la propia pestaña)
+  const fAsociado=document.getElementById('f-asociado');
+  const fGranja=document.getElementById('f-granja');
+  const fConsec=document.getElementById('f-consec');
+  const campoAsociado=fAsociado?fAsociado.closest('.field'):null;
+  const campoGranja=fGranja?fGranja.closest('.field'):null;
+  const campoConsec=fConsec?fConsec.closest('.field'):null;
+  if(campoGranja)campoGranja.style.display=t==='granja'?'':'none';
+  if(campoConsec)campoConsec.style.display=t==='granja'?'':'none';
+  if(campoAsociado)campoAsociado.style.display=(t==='comp'&&!userAsociado)?'':'none';
+}
+
 function showMainTab(t){
   document.getElementById('panel-granja').style.display=t==='granja'?'block':'none';
   document.getElementById('panel-comp').style.display=t==='comp'?'block':'none';
   document.getElementById('mtab-granja').className='main-tab'+(t==='granja'?' active':'');
   document.getElementById('mtab-comp').className='main-tab'+(t==='comp'?' active':'');
+  actualizarVisibilidadFiltros(t);
   if(t==='comp'){
     dibujarComparativo();
     setTimeout(dibujarComparativo,120);
@@ -1143,6 +1163,15 @@ const INDICADORES_COMP=[
   {key:'pleur',   lbl:'% Frecuencia pleuritis',   color:'#185fa5', fmt:v=>v.toFixed(1)+'%'},
   {key:'poliser', lbl:'% Poliserositis',          color:'#4a3080', fmt:v=>v.toFixed(1)+'%'},
   {key:'gdp',     lbl:'Pérdidas GDP (kg)',        color:'#4a6491', fmt:v=>v.toFixed(1)},
+  {key:'nint',    lbl:'Neumonía intersticial',    color:'#257a65', fmt:v=>v.toFixed(1)+'%'},
+  {key:'absc',    lbl:'Absceso pulmón',           color:'#2f8f6b', fmt:v=>v.toFixed(1)+'%'},
+  {key:'nodu',    lbl:'Nódulo pulmón',            color:'#3aa07a', fmt:v=>v.toFixed(1)+'%'},
+  {key:'peri',    lbl:'Pericarditis',             color:'#1e5c35', fmt:v=>v.toFixed(1)+'%'},
+  {key:'manc',    lbl:'Manchas de leche',         color:'#4caf8a', fmt:v=>v.toFixed(1)+'%'},
+  {key:'agua',    lbl:'Artefacto agua',           color:'#4a6491', fmt:v=>v.toFixed(1)+'%'},
+  {key:'sang',    lbl:'Artefacto sangre',         color:'#5a7ba8', fmt:v=>v.toFixed(1)+'%'},
+  {key:'pete',    lbl:'Petequias',                color:'#6b8fc2', fmt:v=>v.toFixed(1)+'%'},
+  {key:'ambos',   lbl:'Ambos artefactos',         color:'#8a2237', fmt:v=>v.toFixed(1)+'%'},
 ];
 
 function getCompFilteredData(){
@@ -1162,7 +1191,8 @@ function computeStatsByFarm(data){
   const porG={};
   data.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
-    if(!porG[g])porG[g]={lotes:{},n:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0};
+    if(!porG[g])porG[g]={lotes:{},n:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0,
+      nint:0,absc:0,nodu:0,peri:0,manc:0,agua:0,sang:0,pete:0,ambos:0};
     const pg=porG[g];
     pg.n++;
     const lk=d.consecutivo||'_';
@@ -1176,21 +1206,55 @@ function computeStatsByFarm(data){
     const pleurLeve=(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true');
     const pleurSev=(d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true');
     if(pleurLeve||pleurSev)pg.pleur++;
-    if((pleurLeve||pleurSev)&&(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true'))pg.poliser++;
+    const pericard=(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true');
+    if((pleurLeve||pleurSev)&&pericard)pg.poliser++;
     pg.sumGdp+=parseFloat(d.perdida_gdp_kg)||0;
+
+    // Otras lesiones (sobre el total de cerdos de la granja)
+    const nint=(d.neumonia_intersticial===true||d.neumonia_intersticial===1||d.neumonia_intersticial==='true');
+    const absc=(d.absceso_pulmon===true||d.absceso_pulmon===1||d.absceso_pulmon==='true');
+    const nodu=(d.nodulo_pulmon===true||d.nodulo_pulmon===1||d.nodulo_pulmon==='true');
+    const manc=(d.manchas_leche===true||d.manchas_leche===1||d.manchas_leche==='true');
+    if(nint)pg.nint++;
+    if(absc)pg.absc++;
+    if(nodu)pg.nodu++;
+    if(pericard)pg.peri++;
+    if(manc)pg.manc++;
+
+    // Artefactos: solo sobre cerdos con pulmón sano (sin ninguna lesión)
+    const esSano = cat===0 && consol===0 && !nint && !absc && !nodu && !pericard && !manc && !pleurLeve && !pleurSev;
+    if(esSano){
+      const agua=(d.artefacto_agua===true||d.artefacto_agua===1||d.artefacto_agua==='true');
+      const sang=(d.artefacto_sangre===true||d.artefacto_sangre===1||d.artefacto_sangre==='true');
+      const pete=(d.petequias===true||d.petequias===1||d.petequias==='true');
+      if(agua)pg.agua++;
+      if(sang)pg.sang++;
+      if(pete)pg.pete++;
+      if([agua,sang,pete].filter(Boolean).length>=2)pg.ambos++;
+    }
   });
   const out={};
   Object.keys(porG).forEach(g=>{
     const pg=porG[g];
     const lotesArr=Object.values(pg.lotes);
     const idn=lotesArr.length?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
+    const n=pg.n||1;
     out[g]={
       idn,
-      consol: pg.n?pg.sumConsol/pg.n:0,
-      neum: pg.n?pg.neum/pg.n*100:0,
-      pleur: pg.n?pg.pleur/pg.n*100:0,
-      poliser: pg.n?pg.poliser/pg.n*100:0,
+      consol: pg.sumConsol/n,
+      neum: pg.neum/n*100,
+      pleur: pg.pleur/n*100,
+      poliser: pg.poliser/n*100,
       gdp: pg.sumGdp,
+      nint: pg.nint/n*100,
+      absc: pg.absc/n*100,
+      nodu: pg.nodu/n*100,
+      peri: pg.peri/n*100,
+      manc: pg.manc/n*100,
+      agua: pg.agua/n*100,
+      sang: pg.sang/n*100,
+      pete: pg.pete/n*100,
+      ambos: pg.ambos/n*100,
       n: pg.n
     };
   });
@@ -1229,6 +1293,11 @@ function poblarComparativoFiltros(){
 
 function compSelectAllGranjas(marcar){
   document.querySelectorAll('#comp-granjas-list input[type=checkbox]').forEach(chk=>chk.checked=marcar);
+  renderComparativo();
+}
+
+function compSelectAllIndicadores(marcar){
+  document.querySelectorAll('#comp-indicadores-list input[type=checkbox]').forEach(chk=>chk.checked=marcar);
   renderComparativo();
 }
 
@@ -1321,12 +1390,16 @@ function renderComparativo(){
   indicadoresSel.forEach(ind=>{
     const vals=granjasSel.map(g=>stats[g]?stats[g][ind.key]:0);
     const canvasEl=document.getElementById('ch-comp-'+ind.key);
-    const refVal=cercafeStats?(ind.key==='idn'?cercafeStats.idn
-      :ind.key==='consol'?cercafeStats.pctConsol
-      :ind.key==='neum'?(cercafeStats.neum/cercafeStats.n*100)
-      :ind.key==='pleur'?(cercafeStats.pleur/cercafeStats.n*100)
-      :ind.key==='poliser'?(cercafeStats.poliser/cercafeStats.n*100)
-      :null):null;
+    let refVal=null;
+    if(cercafeStats){
+      if(ind.key==='idn')refVal=cercafeStats.idn;
+      else if(ind.key==='consol')refVal=cercafeStats.pctConsol;
+      else if(ind.key==='neum')refVal=cercafeStats.neum/cercafeStats.n*100;
+      else if(ind.key==='pleur')refVal=cercafeStats.pleur/cercafeStats.n*100;
+      else if(ind.key==='poliser')refVal=cercafeStats.poliser/cercafeStats.n*100;
+      else if(cercafeStats.lesPct&&(ind.key in cercafeStats.lesPct))refVal=cercafeStats.lesPct[ind.key];
+      else if(cercafeStats.artPct&&(ind.key in cercafeStats.artPct))refVal=cercafeStats.artPct[ind.key];
+    }
     if(canvasEl)drawBarChartComparativo(canvasEl, labels, vals, ind.color, ind.fmt, refVal, 'Cercafe');
   });
 }
