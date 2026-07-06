@@ -1344,10 +1344,11 @@ function compSelectAllIndicadores(marcar){
   renderComparativo();
 }
 
-function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, refLbl){
+function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, refLbl, widthOverride){
   const n=labels.length||1;
   const LBL_H=76, BAR_ZONE=220, H=BAR_ZONE+LBL_H;
-  const W=Math.max(canvasEl.parentElement.clientWidth-32||400, n*56);
+  const baseW=widthOverride||Math.max(canvasEl.parentElement.clientWidth-32, 300);
+  const W=Math.max(baseW, n*56);
   canvasEl.style.width='100%'; canvasEl.style.height=H+'px';
   const ctx=setupCanvas(canvasEl,W,H);
   ctx.clearRect(0,0,W,H);
@@ -1414,6 +1415,28 @@ function setOrdenComparativo(orden){
   renderComparativo();
 }
 
+function ordenarIndicador(ind, granjasSel, stats){
+  // Orden por granja (alfabético) o por el valor propio de este indicador (asc/desc)
+  let granjasOrden=[...granjasSel];
+  if(_ordenComparativo==='asc') granjasOrden.sort((a,b)=>(stats[a]?stats[a][ind.key]:0)-(stats[b]?stats[b][ind.key]:0));
+  else if(_ordenComparativo==='desc') granjasOrden.sort((a,b)=>(stats[b]?stats[b][ind.key]:0)-(stats[a]?stats[a][ind.key]:0));
+  const labelsOrd=granjasOrden.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
+  const vals=granjasOrden.map(g=>stats[g]?stats[g][ind.key]:0);
+  return {labelsOrd, vals};
+}
+
+function getRefValIndicador(ind){
+  if(!cercafeStats)return null;
+  if(ind.key==='idn')return cercafeStats.idn;
+  if(ind.key==='consol')return cercafeStats.pctConsol;
+  if(ind.key==='neum')return cercafeStats.neum/cercafeStats.n*100;
+  if(ind.key==='pleur')return cercafeStats.pleur/cercafeStats.n*100;
+  if(ind.key==='poliser')return cercafeStats.poliser/cercafeStats.n*100;
+  if(cercafeStats.lesPct&&(ind.key in cercafeStats.lesPct))return cercafeStats.lesPct[ind.key];
+  if(cercafeStats.artPct&&(ind.key in cercafeStats.artPct))return cercafeStats.artPct[ind.key];
+  return null;
+}
+
 function renderComparativo(){
   const contDiv=document.getElementById('comp-charts');
   if(!contDiv)return;
@@ -1440,23 +1463,9 @@ function renderComparativo(){
     </div>`).join('');
 
   indicadoresSel.forEach(ind=>{
-    // Orden por granja (alfabético) o por el valor propio de este indicador (asc/desc)
-    let granjasOrden=[...granjasSel];
-    if(_ordenComparativo==='asc') granjasOrden.sort((a,b)=>(stats[a]?stats[a][ind.key]:0)-(stats[b]?stats[b][ind.key]:0));
-    else if(_ordenComparativo==='desc') granjasOrden.sort((a,b)=>(stats[b]?stats[b][ind.key]:0)-(stats[a]?stats[a][ind.key]:0));
-    const labelsOrd=granjasOrden.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
-    const vals=granjasOrden.map(g=>stats[g]?stats[g][ind.key]:0);
+    const {labelsOrd, vals}=ordenarIndicador(ind, granjasSel, stats);
     const canvasEl=document.getElementById('ch-comp-'+ind.key);
-    let refVal=null;
-    if(cercafeStats){
-      if(ind.key==='idn')refVal=cercafeStats.idn;
-      else if(ind.key==='consol')refVal=cercafeStats.pctConsol;
-      else if(ind.key==='neum')refVal=cercafeStats.neum/cercafeStats.n*100;
-      else if(ind.key==='pleur')refVal=cercafeStats.pleur/cercafeStats.n*100;
-      else if(ind.key==='poliser')refVal=cercafeStats.poliser/cercafeStats.n*100;
-      else if(cercafeStats.lesPct&&(ind.key in cercafeStats.lesPct))refVal=cercafeStats.lesPct[ind.key];
-      else if(cercafeStats.artPct&&(ind.key in cercafeStats.artPct))refVal=cercafeStats.artPct[ind.key];
-    }
+    const refVal=getRefValIndicador(ind);
     if(canvasEl)drawBarChartComparativo(canvasEl, labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe');
   });
 }
@@ -1644,6 +1653,14 @@ function generarDonaTemp(data, width){
   return url;
 }
 
+function generarBarraTemp(labels, vals, color, fmt, refVal, refLbl, width){
+  // Genera un gráfico de barras comparativo con un ancho fijo (independiente del layout en pantalla)
+  // para que todas las imágenes del PDF tengan siempre la misma proporción, sin necesidad de adjuntarlo al DOM
+  const canvas=document.createElement('canvas');
+  drawBarChartComparativo(canvas, labels, vals, color, fmt, refVal, refLbl, width);
+  return canvas.toDataURL('image/png');
+}
+
 function imprimirPDF(){
   cerrarPDF();
   if(_pdfContext==='comp'){ imprimirPDFComparativo(); return; }
@@ -1761,18 +1778,24 @@ function imprimirPDFComparativo(){
   });
   if(!granjasSel.length||!indicadoresSel.length)return;
 
-  // Asegurar que los gráficos estén actualizados antes de capturarlos
-  renderComparativo();
-
   const compData=getCompFilteredData().filter(d=>granjasSel.includes(d.granja_nombre));
   const stats=computeStatsByFarm(compData);
   const filtrosDesc=document.getElementById('pdf-filtros-desc').textContent;
   const fecha=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
   const logoSrc=(document.querySelector('.hdr img')||{}).src||'';
 
+  // Cuadrícula adaptativa según la cantidad de indicadores seleccionados:
+  // 1 indicador -> ancho completo; 2 -> dos columnas; 3+ -> tres columnas
+  const numCols = indicadoresSel.length===1 ? 1 : indicadoresSel.length===2 ? 2 : 3;
+  const anchoImg = numCols===1 ? 760 : numCols===2 ? 460 : 300;
+
+  // Todas las imágenes se generan con el mismo ancho fijo, así todas guardan la misma proporción
+  // sin importar el tamaño que tuvieran en pantalla al momento de exportar
   const chartsImgs=indicadoresSel.map(ind=>{
-    const canvasEl=document.getElementById('ch-comp-'+ind.key);
-    return {lbl:ind.lbl, src: canvasEl?canvasEl.toDataURL('image/png'):''};
+    const {labelsOrd, vals}=ordenarIndicador(ind, granjasSel, stats);
+    const refVal=getRefValIndicador(ind);
+    const src=generarBarraTemp(labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', anchoImg);
+    return {lbl:ind.lbl, src};
   });
 
   const imgSev=generarDonaTemp(compData, 420);
@@ -1799,23 +1822,23 @@ function imprimirPDFComparativo(){
 
     <!-- GRÁFICOS COMPARATIVOS -->
     <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;">Gráficos comparativos</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div style="display:grid;grid-template-columns:repeat(${numCols},1fr);gap:10px;margin-bottom:12px;">
       ${chartsImgs.map(c=>`
-        <div>
+        <div style="page-break-inside:avoid;break-inside:avoid;">
           <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">${c.lbl}</div>
-          <img src="${c.src}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;">
+          <img src="${c.src}" style="width:100%;display:block;border:1px solid #e8e3da;border-radius:4px;">
         </div>`).join('')}
     </div>
 
     <!-- SEVERIDAD -->
-    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;">Distribución de severidad</div>
-    <div style="max-width:420px;margin-bottom:12px;">
-      <img src="${imgSev}" style="width:100%;border:1px solid #e8e3da;border-radius:4px;">
+    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid;">Distribución de severidad</div>
+    <div style="max-width:420px;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
+      <img src="${imgSev}" style="width:100%;display:block;border:1px solid #e8e3da;border-radius:4px;">
     </div>
 
     <!-- TABLA COMPARATIVA -->
-    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;">Tabla comparativa</div>
-    <table style="width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:12px;">
+    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid;">Tabla comparativa</div>
+    <table style="width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
       <thead><tr style="background:#f2efe9;"><th style="padding:5px 8px;border:1px solid #e8e3da;">Granja</th>${headerTabla}</tr></thead>
       <tbody>${filasTabla}</tbody>
     </table>
