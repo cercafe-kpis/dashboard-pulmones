@@ -85,6 +85,7 @@ select:focus,input:focus{outline:none;border-color:var(--gm);}
 
 .charts-grid{display:grid;grid-template-columns:3fr 1fr;gap:10px;margin-bottom:1rem;}
 @media(max-width:800px){.charts-grid{grid-template-columns:1fr;}}
+.comp-charts-stack{display:flex;flex-direction:column;gap:12px;margin-bottom:1rem;}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem;}
 .chart-card.full{grid-column:1/-1;}
 .chart-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:.75rem;}
@@ -358,7 +359,7 @@ const CONFIG={
           <button id="ord-alfa" class="btn-orden active" onclick="setOrdenComparativo('alfa')">Por granja</button>
         </div>
       </div>
-      <div id="comp-charts" class="charts-grid"></div>
+      <div id="comp-charts" class="comp-charts-stack"></div>
 
       <div class="sec">Distribución de severidad (red)</div>
       <div class="chart-card" style="margin-bottom:1rem;">
@@ -1855,11 +1856,14 @@ function imprimirPDFComparativo(){
   printArea.innerHTML=html;
   printArea.style.display='block';
 
+  const tituloOriginal=document.title;
+  document.title='Comparativo entre granjas';
   setTimeout(()=>{
     window.print();
     setTimeout(()=>{
       printArea.style.display='none';
       printArea.innerHTML='';
+      document.title=tituloOriginal;
     },1500);
   },300);
 }
