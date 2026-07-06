@@ -108,6 +108,15 @@ canvas{display:block;width:100% !important;}
 .comp-filtros{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
 @media(max-width:800px){.comp-filtros{grid-template-columns:1fr;}}
 
+.chip-list{max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs);padding:10px;background:var(--surface);}
+.chip-group{margin-bottom:12px;}
+.chip-group:last-child{margin-bottom:0;}
+.chip-group-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--hint);margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid var(--borderl);}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:6px;}
+.chip-indicador{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;}
+.chip-indicador:hover{border-color:var(--gm);}
+.chip-indicador.active{background:var(--g);border-color:var(--g);color:#fff;}
+
 .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem;}
 .table-scroll{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -330,7 +339,7 @@ const CONFIG={
               <button type="button" onclick="compSelectAllIndicadores(true)">Todos</button>
               <button type="button" onclick="compSelectAllIndicadores(false)">Ninguno</button>
             </div>
-            <div id="comp-indicadores-list" class="chk-list"></div>
+            <div id="comp-indicadores-list" class="chip-list"></div>
           </div>
         </div>
       </div>
@@ -1157,21 +1166,26 @@ function showMainTab(t){
 
 /* ── PESTAÑA COMPARATIVO ENTRE GRANJAS ── */
 const INDICADORES_COMP=[
-  {key:'idn',     lbl:'IDN (CT/TCE)',            color:'#6B1A2A', fmt:v=>v.toFixed(2)},
-  {key:'consol',  lbl:'% Consolidación',          color:'#9e2a2a', fmt:v=>v.toFixed(2)+'%'},
-  {key:'neum',    lbl:'% Frecuencia neumonía',    color:'#b07a00', fmt:v=>v.toFixed(1)+'%'},
-  {key:'pleur',   lbl:'% Frecuencia pleuritis',   color:'#185fa5', fmt:v=>v.toFixed(1)+'%'},
-  {key:'poliser', lbl:'% Poliserositis',          color:'#4a3080', fmt:v=>v.toFixed(1)+'%'},
-  {key:'gdp',     lbl:'Pérdidas GDP (kg)',        color:'#4a6491', fmt:v=>v.toFixed(1)},
-  {key:'nint',    lbl:'Neumonía intersticial',    color:'#257a65', fmt:v=>v.toFixed(1)+'%'},
-  {key:'absc',    lbl:'Absceso pulmón',           color:'#2f8f6b', fmt:v=>v.toFixed(1)+'%'},
-  {key:'nodu',    lbl:'Nódulo pulmón',            color:'#3aa07a', fmt:v=>v.toFixed(1)+'%'},
-  {key:'peri',    lbl:'Pericarditis',             color:'#1e5c35', fmt:v=>v.toFixed(1)+'%'},
-  {key:'manc',    lbl:'Manchas de leche',         color:'#4caf8a', fmt:v=>v.toFixed(1)+'%'},
-  {key:'agua',    lbl:'Artefacto agua',           color:'#4a6491', fmt:v=>v.toFixed(1)+'%'},
-  {key:'sang',    lbl:'Artefacto sangre',         color:'#5a7ba8', fmt:v=>v.toFixed(1)+'%'},
-  {key:'pete',    lbl:'Petequias',                color:'#6b8fc2', fmt:v=>v.toFixed(1)+'%'},
-  {key:'ambos',   lbl:'Ambos artefactos',         color:'#8a2237', fmt:v=>v.toFixed(1)+'%'},
+  {key:'idn',     lbl:'IDN (CT/TCE)',            color:'#6B1A2A', fmt:v=>v.toFixed(2),      grupo:'principales'},
+  {key:'consol',  lbl:'% Consolidación',          color:'#9e2a2a', fmt:v=>v.toFixed(2)+'%', grupo:'principales'},
+  {key:'neum',    lbl:'% Frecuencia neumonía',    color:'#b07a00', fmt:v=>v.toFixed(1)+'%', grupo:'principales'},
+  {key:'pleur',   lbl:'% Frecuencia pleuritis',   color:'#185fa5', fmt:v=>v.toFixed(1)+'%', grupo:'principales'},
+  {key:'poliser', lbl:'% Poliserositis',          color:'#4a3080', fmt:v=>v.toFixed(1)+'%', grupo:'principales'},
+  {key:'gdp',     lbl:'Pérdidas GDP (kg)',        color:'#4a6491', fmt:v=>v.toFixed(1),      grupo:'principales'},
+  {key:'nint',    lbl:'Neumonía intersticial',    color:'#257a65', fmt:v=>v.toFixed(1)+'%', grupo:'otros'},
+  {key:'absc',    lbl:'Absceso pulmón',           color:'#2f8f6b', fmt:v=>v.toFixed(1)+'%', grupo:'otros'},
+  {key:'nodu',    lbl:'Nódulo pulmón',            color:'#3aa07a', fmt:v=>v.toFixed(1)+'%', grupo:'otros'},
+  {key:'peri',    lbl:'Pericarditis',             color:'#1e5c35', fmt:v=>v.toFixed(1)+'%', grupo:'otros'},
+  {key:'manc',    lbl:'Manchas de leche',         color:'#4caf8a', fmt:v=>v.toFixed(1)+'%', grupo:'otros'},
+  {key:'agua',    lbl:'Artefacto agua',           color:'#4a6491', fmt:v=>v.toFixed(1)+'%', grupo:'artefactos'},
+  {key:'sang',    lbl:'Artefacto sangre',         color:'#5a7ba8', fmt:v=>v.toFixed(1)+'%', grupo:'artefactos'},
+  {key:'pete',    lbl:'Petequias',                color:'#6b8fc2', fmt:v=>v.toFixed(1)+'%', grupo:'artefactos'},
+  {key:'ambos',   lbl:'Ambos artefactos',         color:'#8a2237', fmt:v=>v.toFixed(1)+'%', grupo:'artefactos'},
+];
+const GRUPOS_INDICADORES=[
+  {key:'principales', lbl:'Indicadores principales'},
+  {key:'otros',        lbl:'Otros hallazgos'},
+  {key:'artefactos',   lbl:'Artefactos'},
 ];
 
 function getCompFilteredData(){
@@ -1280,15 +1294,24 @@ function poblarComparativoFiltros(){
   }).join('');
   _compGranjasInit=true;
 
-  // Indicadores: se listan una sola vez
+  // Indicadores: se listan una sola vez, agrupados como chips/botones
   const listI=document.getElementById('comp-indicadores-list');
   if(!listI.dataset.built){
-    listI.innerHTML=INDICADORES_COMP.map((ind,i)=>{
-      const checked=i===0?'checked':''; // por defecto solo IDN, igual que el gráfico original
-      return `<div class="chk-item"><input type="checkbox" id="chk-i-${ind.key}" value="${ind.key}" ${checked} onchange="renderComparativo()"><label for="chk-i-${ind.key}">${ind.lbl}</label></div>`;
+    listI.innerHTML=GRUPOS_INDICADORES.map(grupo=>{
+      const items=INDICADORES_COMP.filter(ind=>ind.grupo===grupo.key);
+      const chips=items.map((ind,i)=>{
+        const activo=(grupo.key==='principales'&&ind.key==='idn'); // por defecto solo IDN, igual que el gráfico original
+        return `<button type="button" class="chip-indicador${activo?' active':''}" id="chk-i-${ind.key}" data-key="${ind.key}" onclick="toggleIndicadorChip(this)">${ind.lbl}</button>`;
+      }).join('');
+      return `<div class="chip-group"><div class="chip-group-title">${grupo.lbl}</div><div class="chip-wrap">${chips}</div></div>`;
     }).join('');
     listI.dataset.built='1';
   }
+}
+
+function toggleIndicadorChip(btn){
+  btn.classList.toggle('active');
+  renderComparativo();
 }
 
 function compSelectAllGranjas(marcar){
@@ -1297,7 +1320,9 @@ function compSelectAllGranjas(marcar){
 }
 
 function compSelectAllIndicadores(marcar){
-  document.querySelectorAll('#comp-indicadores-list input[type=checkbox]').forEach(chk=>chk.checked=marcar);
+  document.querySelectorAll('#comp-indicadores-list .chip-indicador').forEach(chip=>{
+    chip.classList.toggle('active', marcar);
+  });
   renderComparativo();
 }
 
@@ -1367,8 +1392,8 @@ function renderComparativo(){
 
   const granjasSel=[...document.querySelectorAll('#comp-granjas-list input[type=checkbox]:checked')].map(i=>i.value).sort();
   const indicadoresSel=INDICADORES_COMP.filter(ind=>{
-    const chk=document.getElementById('chk-i-'+ind.key);
-    return chk&&chk.checked;
+    const chip=document.getElementById('chk-i-'+ind.key);
+    return chip&&chip.classList.contains('active');
   });
 
   const compData=getCompFilteredData().filter(d=>granjasSel.includes(d.granja_nombre));
