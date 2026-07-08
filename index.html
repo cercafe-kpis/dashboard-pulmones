@@ -268,12 +268,12 @@ const CONFIG={
 
       <div class="sec">Indicadores principales</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
-        <div class="kpi-card c1"><div class="kpi-lbl">IDN (CT/TCE)</div><div class="kpi-val c1" id="k-idn">—</div><div class="kpi-sub" id="k-idn-sub">Índice de Neumonía</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-idn">—</span></div></div>
-        <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="kpi-sub" id="k-consol-sub">promedio por cerdo</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-consol">—</span></div></div>
-        <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="kpi-sub" id="k-neum-sub">cerdos con lesión</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-neum">—</span></div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">IDN (CT/TCE)</div><div class="kpi-val c1" id="k-idn">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-idn">—</span></div></div>
+        <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-consol">—</span></div></div>
+        <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-neum">—</span></div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Pérdidas GDP totales</div><div class="kpi-val c3" id="k-gdp">—</div><div class="kpi-sub">kg estimados</div></div>
-        <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis total</div><div class="kpi-val c4" id="k-pleur">—</div><div class="kpi-sub" id="k-pleur-sub">del total inspeccionado</div><div style="font-size:10px;color:var(--muted);margin-top:3px;display:flex;gap:8px;"><span>Leve: <strong id="k-pleur-leve">—</strong></span><span>Severa: <strong id="k-pleur-sev">—</strong></span></div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-pleur">—</span></div></div>
-        <div class="kpi-card c4"><div class="kpi-lbl">Poliserositis</div><div class="kpi-val c4" id="k-poliser">—</div><div class="kpi-sub" id="k-poliser-sub">pleuritis + pericarditis</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-poliser">—</span></div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Frecuencia pleuritis total</div><div class="kpi-val c4" id="k-pleur">—</div><div style="font-size:10px;color:var(--muted);margin-top:3px;display:flex;gap:8px;"><span>Leve: <strong id="k-pleur-leve">—</strong></span><span>Severa: <strong id="k-pleur-sev">—</strong></span></div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-pleur">—</span></div></div>
+        <div class="kpi-card c4"><div class="kpi-lbl">Poliserositis</div><div class="kpi-val c4" id="k-poliser">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-poliser">—</span></div></div>
       </div>
 
       <!-- TOTAL + OTRAS LESIONES -->
@@ -718,11 +718,9 @@ function actualizarKPIs(){
   const poliser=filteredData.filter(d=>(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true'||d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')&&(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true')).length;
 
   document.getElementById('k-idn').textContent=idn.toFixed(2);
-  document.getElementById('k-idn-sub').textContent=filteredData.length+' cerdos inspeccionados';
   const totalEl=document.getElementById('k-total-n');
   if(totalEl)totalEl.textContent=filteredData.length;
   document.getElementById('k-consol').textContent=pctConsol.toFixed(2)+'%';
-  document.getElementById('k-consol-sub').textContent='promedio de '+filteredData.length+' cerdos';
   const gdp=filteredData.reduce((s,d)=>s+(parseFloat(d.perdida_gdp_kg)||0),0);
   document.getElementById('k-gdp').textContent=gdp.toFixed(1)+' kg';
   // Periodo evaluado
@@ -734,17 +732,13 @@ function actualizarKPIs(){
     document.getElementById('k-periodo').textContent='Período evaluado: sin datos';
   }
   document.getElementById('k-neum').textContent=neum+' ('+(neum/n*100).toFixed(1)+'%)';
-  document.getElementById('k-neum-sub').textContent='de '+n+' inspeccionados';
   document.getElementById('k-pleur').textContent=pleur+' ('+(pleur/n*100).toFixed(1)+'%)';
-  document.getElementById('k-pleur-sub').textContent='de '+n+' inspeccionados';
   const pleurLeveEl=document.getElementById('k-pleur-leve');
   const pleurSevEl=document.getElementById('k-pleur-sev');
   if(pleurLeveEl)pleurLeveEl.textContent=pleurLeve+' ('+(pleurLeve/n*100).toFixed(1)+'%)';
   if(pleurSevEl)pleurSevEl.textContent=pleurSev+' ('+(pleurSev/n*100).toFixed(1)+'%)';
   const poliserEl=document.getElementById('k-poliser');
-  const poliserSubEl=document.getElementById('k-poliser-sub');
   if(poliserEl)poliserEl.textContent=poliser+' ('+(poliser/n*100).toFixed(1)+'%)';
-  if(poliserSubEl)poliserSubEl.textContent='de '+n+' inspeccionados';
 
   // Análisis en dashboard
   setTimeout(()=>{
@@ -1715,12 +1709,12 @@ function imprimirPDF(){
     </div>
 
     <!-- KPI CARDS -->
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:12px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:12px;">
       ${kpis.map(k=>`
-        <div style="border:1px solid #e0d8da;border-radius:6px;padding:8px 6px 6px;text-align:center;border-top:3px solid ${k.color};display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:68px;">
-          <div style="font-size:7pt;color:#6b5558;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;min-height:2.4em;display:flex;align-items:center;justify-content:center;">${k.lbl}</div>
-          <div style="font-size:10pt;font-weight:700;color:${k.color};font-family:monospace;line-height:1.1;margin-top:4px;white-space:nowrap;">${k.val}</div>
-          ${k.ref?`<div style="font-size:7pt;color:#9e878c;margin-top:2px;">Cercafe: ${k.ref}</div>`:''}
+        <div style="border:1px solid #e0d8da;border-radius:6px;padding:10px 8px;text-align:center;border-top:3px solid ${k.color};display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:80px;height:100%;">
+          <div style="font-size:7pt;color:#6b5558;text-transform:uppercase;letter-spacing:.05em;line-height:1.3;font-weight:600;">${k.lbl}</div>
+          <div style="font-size:10pt;font-weight:700;color:${k.color};font-family:monospace;line-height:1.1;margin-top:3px;white-space:nowrap;flex-grow:1;display:flex;align-items:center;">${k.val}</div>
+          ${k.ref?`<div style="font-size:7pt;color:#9e878c;margin-top:2px;border-top:1px solid #e8e3da;padding-top:2px;width:100%;text-align:center;">Cercafe: ${k.ref}</div>`:''}
         </div>`).join('')}
     </div>
 
@@ -1767,12 +1761,16 @@ function imprimirPDF(){
   printArea.innerHTML=html;
   printArea.style.display='block';
 
+  const tituloOriginal=document.title;
+  document.title='Score Pulmonar - '+granjaTitle;
+  
   // Ocultar todo lo demás y solo imprimir print-area
   setTimeout(()=>{
     window.print();
     setTimeout(()=>{
       printArea.style.display='none';
       printArea.innerHTML='';
+      document.title=tituloOriginal;
     },1500);
   },300);
 }
