@@ -354,9 +354,9 @@ const CONFIG={
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:.75rem;">
         <div class="sec" style="margin-bottom:0;flex:1;min-width:180px;">Comparativo de indicadores por granja</div>
         <div style="display:flex;gap:4px;flex-shrink:0;">
-          <button id="ord-asc" class="btn-orden" onclick="setOrdenComparativo('asc')">↑ Ascendente</button>
+          <button id="ord-asc" class="btn-orden active" onclick="setOrdenComparativo('asc')">↑ Ascendente</button>
           <button id="ord-desc" class="btn-orden" onclick="setOrdenComparativo('desc')">↓ Descendente</button>
-          <button id="ord-alfa" class="btn-orden active" onclick="setOrdenComparativo('alfa')">Por granja</button>
+          <button id="ord-alfa" class="btn-orden" onclick="setOrdenComparativo('alfa')">Por granja</button>
         </div>
       </div>
       <div id="comp-charts" class="comp-charts-stack"></div>
@@ -1339,7 +1339,15 @@ function compSelectAllIndicadores(marcar){
   renderComparativo();
 }
 
-function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, refLbl, widthOverride){
+function colorEscalaIdn(v){
+  // Misma escala y colores usados en "Escala IDN" del análisis: Sin lesión / Leve / Moderado / Severo
+  if(v<=0)return '#4a6491';        // Sin lesión = 0
+  if(v<0.56)return '#257a65';      // Leve <0.56
+  if(v<=0.89)return '#b07a00';     // Moderado 0.56–0.89
+  return '#9e2a2a';                // Severo >0.9
+}
+
+function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, refLbl, widthOverride, colorFn){
   const n=labels.length||1;
   const LBL_H=76, BAR_ZONE=220, H=BAR_ZONE+LBL_H;
   const baseW=widthOverride||Math.max(canvasEl.parentElement.clientWidth-32, 300);
@@ -1382,7 +1390,7 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
     const x=PAD.l+gap*i+gap/2-barW/2;
     const bh=Math.max(2,cH*(vals[i]/maxV));
     const y=PAD.t+cH-bh;
-    ctx.fillStyle=color;
+    ctx.fillStyle=colorFn?colorFn(vals[i]):color;
     ctx.beginPath();
     if(ctx.roundRect)ctx.roundRect(x,y,barW,bh,3);
     else ctx.rect(x,y,barW,bh);
@@ -1400,7 +1408,7 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
   });
 }
 
-let _ordenComparativo='alfa';
+let _ordenComparativo='asc';
 function setOrdenComparativo(orden){
   _ordenComparativo=orden;
   ['ord-asc','ord-desc','ord-alfa'].forEach(id=>{
@@ -1454,6 +1462,7 @@ function renderComparativo(){
   contDiv.innerHTML=indicadoresSel.map(ind=>`
     <div class="chart-card">
       <div class="chart-title">${ind.lbl}</div>
+      ${ind.key==='idn'?`<div style="font-size:11px;color:var(--hint);margin:-6px 0 10px;">Escala IDN: <span style="color:#4a6491;font-weight:500">Sin lesión = 0</span> · <span style="color:#257a65;font-weight:500">Leve &lt;0.56</span> · <span style="color:#b07a00;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:#9e2a2a;font-weight:500">Severo &gt;0.9</span></div>`:''}
       <canvas id="ch-comp-${ind.key}"></canvas>
     </div>`).join('');
 
@@ -1461,7 +1470,8 @@ function renderComparativo(){
     const {labelsOrd, vals}=ordenarIndicador(ind, granjasSel, stats);
     const canvasEl=document.getElementById('ch-comp-'+ind.key);
     const refVal=getRefValIndicador(ind);
-    if(canvasEl)drawBarChartComparativo(canvasEl, labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe');
+    const colorFn=ind.key==='idn'?colorEscalaIdn:null;
+    if(canvasEl)drawBarChartComparativo(canvasEl, labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', undefined, colorFn);
   });
 }
 
@@ -1651,11 +1661,11 @@ function generarDonaTemp(data, width){
   return url;
 }
 
-function generarBarraTemp(labels, vals, color, fmt, refVal, refLbl, width){
+function generarBarraTemp(labels, vals, color, fmt, refVal, refLbl, width, colorFn){
   // Genera un gráfico de barras comparativo con un ancho fijo (independiente del layout en pantalla)
   // para que todas las imágenes del PDF tengan siempre la misma proporción, sin necesidad de adjuntarlo al DOM
   const canvas=document.createElement('canvas');
-  drawBarChartComparativo(canvas, labels, vals, color, fmt, refVal, refLbl, width);
+  drawBarChartComparativo(canvas, labels, vals, color, fmt, refVal, refLbl, width, colorFn);
   return canvas.toDataURL('image/png');
 }
 
@@ -1828,7 +1838,8 @@ function imprimirPDFComparativo(){
   const chartsImgs=indicadoresSel.map(ind=>{
     const {labelsOrd, vals}=ordenarIndicador(ind, granjasSel, stats);
     const refVal=getRefValIndicador(ind);
-    const src=generarBarraTemp(labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', anchoImg);
+    const colorFn=ind.key==='idn'?colorEscalaIdn:null;
+    const src=generarBarraTemp(labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', anchoImg, colorFn);
     return {lbl:ind.lbl, src};
   });
 
