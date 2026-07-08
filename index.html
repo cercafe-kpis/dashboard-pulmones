@@ -269,7 +269,7 @@ const CONFIG={
 
       <div class="sec">Indicadores principales</div>
       <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
-        <div class="kpi-card c1"><div class="kpi-lbl">IDN (CT/TCE)</div><div class="kpi-val c1" id="k-idn">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-idn">—</span></div></div>
+        <div class="kpi-card c1"><div class="kpi-lbl">IDN</div><div class="kpi-val c1" id="k-idn">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-idn">—</span></div></div>
         <div class="kpi-card c2"><div class="kpi-lbl">% Consolidación promedio</div><div class="kpi-val c2" id="k-consol">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-consol">—</span></div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Frecuencia neumonía</div><div class="kpi-val c3" id="k-neum">—</div><div class="cercafe-ref"><span class="cr-lbl">Cercafe:</span> <span class="cr-val" id="cr-neum">—</span></div></div>
         <div class="kpi-card c3"><div class="kpi-lbl">Pérdidas GDP totales</div><div class="kpi-val c3" id="k-gdp">—</div><div class="kpi-sub">kg estimados</div></div>
@@ -390,7 +390,7 @@ const CONFIG={
         <div class="table-wrap"><div class="table-scroll">
           <table><thead><tr>
             <th>Granja</th><th>Consecutivo</th><th>Fecha</th><th>Cerdos</th>
-            <th>IDN lote (CT/TCE)</th><th>% Neumonía</th><th>% Pleuritis</th>
+            <th>IDN lote</th><th>% Neumonía</th><th>% Pleuritis</th>
             <th>GDP total (kg)</th><th>Severidad predominante</th>
           </tr></thead><tbody id="tbody-d"></tbody></table>
         </div></div>
@@ -1183,7 +1183,7 @@ function showMainTab(t){
 
 /* ── PESTAÑA COMPARATIVO ENTRE GRANJAS ── */
 const INDICADORES_COMP=[
-  {key:'idn',     lbl:'IDN (CT/TCE)',            color:'#6B1A2A', fmt:v=>v.toFixed(2),      grupo:'principales'},
+  {key:'idn',     lbl:'IDN',            color:'#6B1A2A', fmt:v=>v.toFixed(2),      grupo:'principales'},
   {key:'consol',  lbl:'% Consolidación',          color:'#9e2a2a', fmt:v=>v.toFixed(2)+'%', grupo:'principales'},
   {key:'neum',    lbl:'% Frecuencia neumonía',    color:'#b07a00', fmt:v=>v.toFixed(1)+'%', grupo:'principales'},
   {key:'pleur',   lbl:'% Frecuencia pleuritis',   color:'#185fa5', fmt:v=>v.toFixed(1)+'%', grupo:'principales'},
@@ -1381,7 +1381,7 @@ function exportarExcelResultados(){
   const fecha=new Date().toLocaleDateString('es-CO');
 
   const columnasIndicadores=(s)=>({
-    'IDN (CT/TCE)': +s.idn.toFixed(2),
+    'IDN': +s.idn.toFixed(2),
     '% Consolidación': +s.consol.toFixed(2),
     '% Neumonía': +s.neum.toFixed(1),
     '% Pleuritis': +s.pleur.toFixed(1),
@@ -1700,7 +1700,7 @@ function generarAnalisisDashboard(idn,consol,neum,n,pleur,gdp){
       <div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;">
           <tr style="background:var(--surface);">
-            <td style="padding:6px 10px;font-weight:600;width:40%;border:1px solid var(--borderl);">IDN (CT/TCE)</td>
+            <td style="padding:6px 10px;font-weight:600;width:40%;border:1px solid var(--borderl);">IDN</td>
             <td style="padding:6px 10px;border:1px solid var(--borderl);">${idn.toFixed(2)} — <span style="color:${colorIdn};font-weight:600">${sevIdn}</span></td>
           </tr>
           <tr>
@@ -1822,7 +1822,7 @@ function imprimirPDF(){
   // Armar KPIs con sus referencias Cercafe
   const kpis=[
     {lbl:'Cerdos evaluados',  val:n,                                           color:'#1a1814', ref:null},
-    {lbl:'IDN (CT/TCE)',      val:document.getElementById('k-idn').textContent, color:'#7b1010', ref:cercafeStats?.idn?.toFixed(2)},
+    {lbl:'IDN',      val:document.getElementById('k-idn').textContent, color:'#7b1010', ref:cercafeStats?.idn?.toFixed(2)},
     {lbl:'% Consolidación',   val:document.getElementById('k-consol').textContent,color:'#7b1010', ref:cercafeStats?.pctConsol?.toFixed(2)},
     {lbl:'Frec. Neumonía',    val:document.getElementById('k-neum').textContent, color:'#9e2a2a', ref:cercafeStats?((cercafeStats.neum/cercafeStats.n*100).toFixed(1)+'%'):null},
     {lbl:'Pérdidas GDP',      val:document.getElementById('k-gdp').textContent,  color:'#4a6491', ref:null},
