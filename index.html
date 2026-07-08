@@ -1681,6 +1681,7 @@ function imprimirPDF(){
   const filtrosDesc=document.getElementById('pdf-filtros-desc').textContent;
   const fecha=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
   const granjaTitle=window._granjaPDFTitle||'Análisis';
+  const analisisHTML=(document.getElementById('analisis-dashboard')||{}).innerHTML||'';
 
   // Armar KPIs con sus referencias Cercafe
   const kpis=[
@@ -1743,6 +1744,10 @@ function imprimirPDF(){
     </div>
 
     <!-- ANÁLISIS -->
+    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid;">Análisis de resultados</div>
+    <div style="margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
+      ${analisisHTML}
+    </div>
 
     <!-- OTRAS LESIONES -->
     <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:6px;">Otras lesiones</div>
