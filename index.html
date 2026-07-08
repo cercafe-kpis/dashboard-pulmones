@@ -1845,13 +1845,6 @@ function imprimirPDFComparativo(){
 
   const imgSev=generarDonaTemp(compData, 420);
 
-  const headerTabla=indicadoresSel.map(ind=>`<th style="padding:5px 8px;border:1px solid #e8e3da;font-size:7.5pt;">${ind.lbl}</th>`).join('');
-  const filasTabla=granjasSel.map(g=>{
-    const s=stats[g]||{};
-    const celdas=indicadoresSel.map(ind=>`<td style="padding:5px 8px;border:1px solid #e8e3da;text-align:right;font-family:monospace;">${ind.fmt(s[ind.key]||0)}</td>`).join('');
-    return `<tr><td style="padding:5px 8px;border:1px solid #e8e3da;font-weight:600;">${GRANJA_VISTA[g.toUpperCase()]||g}</td>${celdas}</tr>`;
-  }).join('');
-
   const html=`
   <div style="font-family:-apple-system,sans-serif;color:#1a1814;font-size:10pt;max-width:100%;">
 
@@ -1880,13 +1873,6 @@ function imprimirPDFComparativo(){
     <div style="max-width:420px;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
       <img src="${imgSev}" style="width:100%;display:block;border:1px solid #e8e3da;border-radius:4px;">
     </div>
-
-    <!-- TABLA COMPARATIVA -->
-    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid;">Tabla comparativa</div>
-    <table style="width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
-      <thead><tr style="background:#f2efe9;"><th style="padding:5px 8px;border:1px solid #e8e3da;">Granja</th>${headerTabla}</tr></thead>
-      <tbody>${filasTabla}</tbody>
-    </table>
 
     <!-- PIE -->
     <div style="border-top:1px solid #d4cfc4;padding-top:6px;display:flex;justify-content:space-between;font-size:7.5pt;color:#9e9589;">
