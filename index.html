@@ -1830,8 +1830,8 @@ function imprimirPDFComparativo(){
 
   // Cuadrícula adaptativa según la cantidad de indicadores seleccionados:
   // 1 indicador -> ancho completo; 2 -> dos columnas; 3+ -> tres columnas
-  const numCols = indicadoresSel.length===1 ? 1 : indicadoresSel.length===2 ? 2 : 3;
-  const anchoImg = numCols===1 ? 760 : numCols===2 ? 460 : 300;
+  const numCols = 1;
+  const anchoImg = 760;
 
   // Todas las imágenes se generan con el mismo ancho fijo, así todas guardan la misma proporción
   // sin importar el tamaño que tuvieran en pantalla al momento de exportar
