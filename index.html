@@ -1532,7 +1532,7 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
     else ctx.rect(x,y,barW,bh);
     ctx.fill();
 
-    ctx.fillStyle='#1a1814';ctx.font='bold 10px monospace';ctx.textAlign='center';
+    ctx.fillStyle='#1a1814';ctx.font='bold 12px monospace';ctx.textAlign='center';
     ctx.fillText(fmt(vals[i]),x+barW/2,y-4);
 
     ctx.save();
