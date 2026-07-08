@@ -1788,15 +1788,19 @@ function imprimirPDF(){
 
   const tituloOriginal=document.title;
   document.title='Score Pulmonar - '+granjaTitle;
-  
-  // Ocultar todo lo demás y solo imprimir print-area
+
+  // Limpiar solo cuando el usuario realmente termina con el diálogo de impresión/guardado
+  // (afterprint espera a que cierre el diálogo, sin importar cuánto se demore en elegir dónde guardar)
+  const limpiar=()=>{
+    printArea.style.display='none';
+    printArea.innerHTML='';
+    document.title=tituloOriginal;
+    window.removeEventListener('afterprint',limpiar);
+  };
+  window.addEventListener('afterprint',limpiar);
+
   setTimeout(()=>{
     window.print();
-    setTimeout(()=>{
-      printArea.style.display='none';
-      printArea.innerHTML='';
-      document.title=tituloOriginal;
-    },1500);
   },300);
 }
 
@@ -1887,13 +1891,17 @@ function imprimirPDFComparativo(){
 
   const tituloOriginal=document.title;
   document.title='Comparativo entre granjas';
+
+  const limpiar=()=>{
+    printArea.style.display='none';
+    printArea.innerHTML='';
+    document.title=tituloOriginal;
+    window.removeEventListener('afterprint',limpiar);
+  };
+  window.addEventListener('afterprint',limpiar);
+
   setTimeout(()=>{
     window.print();
-    setTimeout(()=>{
-      printArea.style.display='none';
-      printArea.innerHTML='';
-      document.title=tituloOriginal;
-    },1500);
   },300);
 }
 
