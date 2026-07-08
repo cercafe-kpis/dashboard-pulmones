@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Score Pulmonar — Análisis</title>
 <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --g:#6B1A2A;--gd:#4e1220;--gl:#f8eff1;--gm:#8a2237;
@@ -366,7 +367,10 @@ const CONFIG={
         <canvas id="ch-sev" height="180"></canvas>
       </div>
 
-      <div class="sec">Resultados por tabla</div>
+      <div class="sec" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Resultados por tabla</span>
+        <button onclick="exportarExcelResultados()" style="height:28px;padding:0 12px;background:#1d6f42;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;">📊 Exportar a Excel</button>
+      </div>
       <div class="tabs">
         <button class="tab active" id="tab-g" onclick="showTab('g')">Por granja</button>
         <button class="tab" id="tab-d" onclick="showTab('d')">Por consecutivo</button>
@@ -1286,6 +1290,138 @@ function computeStatsByFarm(data){
     };
   });
   return out;
+}
+
+function computeStatsByLote(data){
+  // Igual que computeStatsByFarm, pero agrupado por granja+consecutivo (un lote específico)
+  const porL={};
+  data.forEach(d=>{
+    const g=d.granja_nombre||'Sin granja';
+    const consec=d.consecutivo||'—';
+    const key=g+'|||'+consec;
+    if(!porL[key]){
+      const f=(d.fecha_inspeccion||'').split('T')[0];
+      porL[key]={granja:g,consec,fecha:f,lotes:{},n:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0,
+        nint:0,absc:0,nodu:0,peri:0,manc:0,agua:0,sang:0,pete:0,ambos:0};
+    }
+    const pl=porL[key];
+    pl.n++;
+    const lk=d.consecutivo||'_';
+    if(!pl.lotes[lk])pl.lotes[lk]={ct:0,tce:0};
+    pl.lotes[lk].ct+=parseInt(d.categoria)||0;
+    pl.lotes[lk].tce++;
+    const cat=parseInt(d.categoria)||0;
+    const consol=parseFloat(d.consolidacion_total)||0;
+    pl.sumConsol+=consol;
+    if(cat>0&&consol>0)pl.neum++;
+    const pleurLeve=(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true');
+    const pleurSev=(d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true');
+    if(pleurLeve||pleurSev)pl.pleur++;
+    const pericard=(d.pericarditis===true||d.pericarditis===1||d.pericarditis==='true');
+    if((pleurLeve||pleurSev)&&pericard)pl.poliser++;
+    pl.sumGdp+=parseFloat(d.perdida_gdp_kg)||0;
+
+    const nint=(d.neumonia_intersticial===true||d.neumonia_intersticial===1||d.neumonia_intersticial==='true');
+    const absc=(d.absceso_pulmon===true||d.absceso_pulmon===1||d.absceso_pulmon==='true');
+    const nodu=(d.nodulo_pulmon===true||d.nodulo_pulmon===1||d.nodulo_pulmon==='true');
+    const manc=(d.manchas_leche===true||d.manchas_leche===1||d.manchas_leche==='true');
+    if(nint)pl.nint++;
+    if(absc)pl.absc++;
+    if(nodu)pl.nodu++;
+    if(pericard)pl.peri++;
+    if(manc)pl.manc++;
+
+    const esSano = cat===0 && consol===0 && !nint && !absc && !nodu && !pericard && !manc && !pleurLeve && !pleurSev;
+    if(esSano){
+      const agua=(d.artefacto_agua===true||d.artefacto_agua===1||d.artefacto_agua==='true');
+      const sang=(d.artefacto_sangre===true||d.artefacto_sangre===1||d.artefacto_sangre==='true');
+      const pete=(d.petequias===true||d.petequias===1||d.petequias==='true');
+      if(agua)pl.agua++;
+      if(sang)pl.sang++;
+      if(pete)pl.pete++;
+      if([agua,sang,pete].filter(Boolean).length>=2)pl.ambos++;
+    }
+  });
+  const out={};
+  Object.keys(porL).forEach(key=>{
+    const pl=porL[key];
+    const lotesArr=Object.values(pl.lotes);
+    const idn=lotesArr.length?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
+    const n=pl.n||1;
+    out[key]={
+      granja:pl.granja, consec:pl.consec, fecha:pl.fecha,
+      idn, consol:pl.sumConsol/n, neum:pl.neum/n*100, pleur:pl.pleur/n*100,
+      poliser:pl.poliser/n*100, gdp:pl.sumGdp,
+      nint:pl.nint/n*100, absc:pl.absc/n*100, nodu:pl.nodu/n*100,
+      peri:pl.peri/n*100, manc:pl.manc/n*100,
+      agua:pl.agua/n*100, sang:pl.sang/n*100, pete:pl.pete/n*100, ambos:pl.ambos/n*100,
+      n:pl.n
+    };
+  });
+  return out;
+}
+
+function descargarExcel(rows, filename, sheetName){
+  if(typeof XLSX==='undefined'){
+    showToast('No se pudo cargar el generador de Excel. Verifique su conexión e intente de nuevo.','err');
+    return;
+  }
+  if(!rows.length){showToast('No hay datos para exportar','err');return;}
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, filename);
+}
+
+function exportarExcelResultados(){
+  // Exporta SIEMPRE los 15 indicadores completos, sin importar cuáles estén
+  // seleccionados arriba en los chips de gráficos comparativos.
+  const compData=getCompFilteredData();
+  const enGranja=document.getElementById('tab-g').classList.contains('active');
+  const fecha=new Date().toLocaleDateString('es-CO');
+
+  const columnasIndicadores=(s)=>({
+    'IDN (CT/TCE)': +s.idn.toFixed(2),
+    '% Consolidación': +s.consol.toFixed(2),
+    '% Neumonía': +s.neum.toFixed(1),
+    '% Pleuritis': +s.pleur.toFixed(1),
+    '% Poliserositis': +s.poliser.toFixed(1),
+    'GDP perdido (kg)': +s.gdp.toFixed(1),
+    '% Neumonía intersticial': +s.nint.toFixed(1),
+    '% Absceso pulmón': +s.absc.toFixed(1),
+    '% Nódulo pulmón': +s.nodu.toFixed(1),
+    '% Pericarditis': +s.peri.toFixed(1),
+    '% Manchas de leche': +s.manc.toFixed(1),
+    '% Artefacto agua': +s.agua.toFixed(1),
+    '% Artefacto sangre': +s.sang.toFixed(1),
+    '% Petequias': +s.pete.toFixed(1),
+    '% Ambos artefactos': +s.ambos.toFixed(1),
+  });
+
+  if(enGranja){
+    const stats=computeStatsByFarm(compData);
+    const rows=Object.keys(stats).sort().map(g=>{
+      const s=stats[g];
+      return {
+        'Granja': GRANJA_VISTA[g.toUpperCase()]||g,
+        'Cerdos': s.n,
+        ...columnasIndicadores(s)
+      };
+    });
+    descargarExcel(rows, `Comparativo_por_granja_${fecha}.xlsx`, 'Por granja');
+  } else {
+    const stats=computeStatsByLote(compData);
+    const rows=Object.values(stats).sort((a,b)=>a.fecha<b.fecha?-1:1).map(l=>{
+      return {
+        'Granja': GRANJA_VISTA[l.granja.toUpperCase()]||l.granja,
+        'Consecutivo': l.consec,
+        'Fecha': l.fecha||'—',
+        'Cerdos': l.n,
+        ...columnasIndicadores(l)
+      };
+    });
+    descargarExcel(rows, `Comparativo_por_consecutivo_${fecha}.xlsx`, 'Por consecutivo');
+  }
 }
 
 let _compGranjasInit=false;
