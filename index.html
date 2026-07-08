@@ -1718,8 +1718,8 @@ function imprimirPDF(){
         </div>`).join('')}
     </div>
 
-    <!-- KPI CARDS - SEGUNDA FILA (3 tarjetas) -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
+    <!-- KPI CARDS - SEGUNDA FILA (3 tarjetas, Pleuritis más ancha en el medio) -->
+    <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:12px;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
       ${kpis.slice(4,7).map(k=>`
         <div style="border:1px solid #e0d8da;border-radius:6px;padding:12px 10px;text-align:center;border-top:4px solid ${k.color};display:flex;flex-direction:column;align-items:center;justify-content:space-between;min-height:95px;">
           <div style="font-size:8pt;color:#9e878c;text-transform:uppercase;letter-spacing:.06em;line-height:1.3;font-weight:600;">${k.lbl}</div>
