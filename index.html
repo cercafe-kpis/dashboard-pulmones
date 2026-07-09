@@ -1435,7 +1435,7 @@ function poblarComparativoFiltros(){
     const checked=_compGranjasInit ? (prevChecked.has(g)?'checked':'') : 'checked';
     const vista=GRANJA_VISTA[g.toUpperCase()]||g;
     const id='chk-g-'+g.replace(/[^a-zA-Z0-9]/g,'_');
-    return `<div class="chk-item"><input type="checkbox" id="${id}" value="${g}" ${checked} onchange="renderComparativo()"><label for="${id}">${vista}</label></div>`;
+    return `<div class="chk-item"><input type="checkbox" id="${id}" value="${g}" ${checked} onchange="dibujarComparativo()"><label for="${id}">${vista}</label></div>`;
   }).join('');
   _compGranjasInit=true;
 
@@ -1461,7 +1461,7 @@ function toggleIndicadorChip(btn){
 
 function compSelectAllGranjas(marcar){
   document.querySelectorAll('#comp-granjas-list input[type=checkbox]').forEach(chk=>chk.checked=marcar);
-  renderComparativo();
+  dibujarComparativo();
 }
 
 function compSelectAllIndicadores(marcar){
