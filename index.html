@@ -363,6 +363,7 @@ const CONFIG={
       <div id="comp-charts" class="comp-charts-stack"></div>
 
       <div class="sec">Distribución de severidad (red)</div>
+      <div style="font-size:11px;color:var(--hint);margin:-6px 0 10px;">Escala severidad: <span style="color:#4a6491;font-weight:500">Sin = 0%</span> · <span style="color:#257a65;font-weight:500">Leve 0–10%</span> · <span style="color:#b07a00;font-weight:500">Moderada 10–30%</span> · <span style="color:#9e2a2a;font-weight:500">Severa &gt;30%</span></div>
       <div id="comp-donas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem;"></div>
 
       <div class="sec" style="display:flex;align-items:center;justify-content:space-between;">
@@ -2009,7 +2010,8 @@ function imprimirPDFComparativo(){
     </div>
 
     <!-- SEVERIDAD -->
-    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid;">Distribución de severidad</div>
+    <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:4px;page-break-inside:avoid;break-inside:avoid;">Distribución de severidad</div>
+    <div style="font-size:7.5pt;color:#9e878c;margin-bottom:8px;">Escala severidad: <span style="color:#4a6491;font-weight:600;">Sin = 0%</span> · <span style="color:#257a65;font-weight:600;">Leve 0–10%</span> · <span style="color:#b07a00;font-weight:600;">Moderada 10–30%</span> · <span style="color:#9e2a2a;font-weight:600;">Severa &gt;30%</span></div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;">
       ${imgsSevPorGranja.map(s=>`
         <div style="page-break-inside:avoid;break-inside:avoid;">
