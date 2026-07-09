@@ -360,6 +360,7 @@ const CONFIG={
           <button id="ord-alfa" class="btn-orden" onclick="setOrdenComparativo('alfa')">Por granja</button>
         </div>
       </div>
+      <div id="comp-conteo-granjas" style="font-size:11px;color:var(--hint);margin:-4px 0 .75rem;"></div>
       <div id="comp-charts" class="comp-charts-stack"></div>
 
       <div class="sec">Distribución de severidad (red)</div>
@@ -1585,6 +1586,21 @@ function renderComparativo(){
 
   const compData=getCompFilteredData().filter(d=>granjasSel.includes(d.granja_nombre));
   const stats=computeStatsByFarm(compData);
+
+  const conteoDiv=document.getElementById('comp-conteo-granjas');
+  if(conteoDiv){
+    if(!granjasSel.length){
+      conteoDiv.textContent='';
+    } else {
+      const totalCerdos=granjasSel.reduce((s,g)=>s+(stats[g]?stats[g].n:0),0);
+      const partes=granjasSel.map(g=>{
+        const vista=GRANJA_VISTA[g.toUpperCase()]||g;
+        const n=stats[g]?stats[g].n:0;
+        return `${vista} (${n})`;
+      });
+      conteoDiv.innerHTML=`<strong>Cerdos evaluados: ${totalCerdos}</strong> &nbsp;·&nbsp; ${partes.join(' · ')}`;
+    }
+  }
 
   if(!indicadoresSel.length){
     contDiv.innerHTML='<div class="chart-card full"><div style="text-align:center;color:var(--hint);padding:2rem;font-size:13px;">Seleccione al menos un indicador para comparar</div></div>';
