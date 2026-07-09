@@ -323,7 +323,6 @@ const CONFIG={
         <div class="chart-card full">
           <div class="chart-title">IDN promedio mensual</div>
           <canvas id="ch-mensual" height="180"></canvas>
-          <div style="font-size:10px;color:var(--hint);margin-top:2px;">n = pulmones inspeccionados</div>
         </div>
       </div>
 
@@ -1025,7 +1024,7 @@ function dibujarMensual(){
 
   if(!meses.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
 
-  const PAD={t:30,r:60,b:36,l:45};
+  const PAD={t:14,r:60,b:36,l:45};
   const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
   const maxV=Math.max(...vals,0.5);
   const barW=Math.min(36,cW/meses.length*0.6);
@@ -1062,8 +1061,6 @@ function dibujarMensual(){
     ctx.fill();
     ctx.fillStyle='#1a1814';ctx.font='bold 11px monospace';ctx.textAlign='center';
     ctx.fillText(v.toFixed(2),x+barW/2,y-3);
-    ctx.fillStyle='#9e878c';ctx.font='bold 11px monospace';
-    ctx.fillText('n='+porMes[m].tce,x+barW/2,y-18);
     // Mes abreviado
     const [yr2,mo]=m.split('-');
     const nombres=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -1495,7 +1492,7 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
 
   if(!labels.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Seleccione al menos una granja',W/2,H/2);return;}
 
-  const PAD={t:38,r:16,b:LBL_H,l:52};
+  const PAD={t:22,r:16,b:LBL_H,l:52};
   const cW=W-PAD.l-PAD.r, cH=BAR_ZONE-PAD.t;
   const maxV=Math.max(...vals,0.001)*1.15;
   const gap=cW/n;
@@ -1535,10 +1532,6 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
 
     ctx.fillStyle='#1a1814';ctx.font='bold 12px monospace';ctx.textAlign='center';
     ctx.fillText(fmt(vals[i]),x+barW/2,y-4);
-    if(ns&&ns[i]!==undefined){
-      ctx.fillStyle='#9e878c';ctx.font='bold 12px monospace';
-      ctx.fillText('n='+ns[i],x+barW/2,y-20);
-    }
 
     ctx.save();
     ctx.translate(x+barW/2, PAD.t+cH+8);
@@ -1621,7 +1614,6 @@ function renderComparativo(){
       <div class="chart-title">${ind.lbl}</div>
       ${ind.key==='idn'?`<div style="font-size:11px;color:var(--hint);margin:-6px 0 10px;">Escala IDN: <span style="color:#4a6491;font-weight:500">Sin lesión = 0</span> · <span style="color:#257a65;font-weight:500">Leve &lt;0.56</span> · <span style="color:#b07a00;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:#9e2a2a;font-weight:500">Severo &gt;0.9</span></div>`:''}
       <canvas id="ch-comp-${ind.key}"></canvas>
-      <div style="font-size:10px;color:var(--hint);margin-top:2px;">n = pulmones inspeccionados</div>
     </div>`).join('');
 
   indicadoresSel.forEach(ind=>{
@@ -2031,7 +2023,6 @@ function imprimirPDFComparativo(){
         <div style="page-break-inside:avoid;break-inside:avoid;">
           <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">${c.lbl}</div>
           <img src="${c.src}" style="width:100%;display:block;border:1px solid #e8e3da;border-radius:4px;">
-          <div style="font-size:6.5pt;color:#9e878c;margin-top:2px;">n = pulmones inspeccionados</div>
         </div>`).join('')}
     </div>
 
