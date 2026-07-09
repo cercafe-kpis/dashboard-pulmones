@@ -1061,11 +1061,13 @@ function dibujarMensual(){
     ctx.fill();
     ctx.fillStyle='#1a1814';ctx.font='bold 11px monospace';ctx.textAlign='center';
     ctx.fillText(v.toFixed(2),x+barW/2,y-3);
-    // Mes abreviado
+    // Mes abreviado + cantidad de cerdos evaluados ese mes
     const [yr2,mo]=m.split('-');
     const nombres=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     ctx.fillStyle='#1a1814';ctx.font='11px sans-serif';
-    ctx.fillText(nombres[parseInt(mo)]+" '"+yr2.substring(2),x+barW/2,H-PAD.b+12);
+    const mostrarConteo=meses.length<=15;
+    const etiqueta=nombres[parseInt(mo)]+" '"+yr2.substring(2)+(mostrarConteo?` (${porMes[m].tce})`:'');
+    ctx.fillText(etiqueta,x+barW/2,H-PAD.b+12);
   });
 }
 
@@ -1557,7 +1559,14 @@ function ordenarIndicador(ind, granjasSel, stats){
   let granjasOrden=[...granjasSel];
   if(_ordenComparativo==='asc') granjasOrden.sort((a,b)=>(stats[a]?stats[a][ind.key]:0)-(stats[b]?stats[b][ind.key]:0));
   else if(_ordenComparativo==='desc') granjasOrden.sort((a,b)=>(stats[b]?stats[b][ind.key]:0)-(stats[a]?stats[a][ind.key]:0));
-  const labelsOrd=granjasOrden.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
+  // Se agrega la cantidad de cerdos evaluados junto al nombre de la granja, ej: "Guaymaral (16)".
+  // Si hay muchas granjas seleccionadas, se omite para que las etiquetas no se vean apretadas.
+  const mostrarConteo=granjasOrden.length<=15;
+  const labelsOrd=granjasOrden.map(g=>{
+    const vista=GRANJA_VISTA[g.toUpperCase()]||g;
+    const n=stats[g]?stats[g].n:0;
+    return mostrarConteo?`${vista} (${n})`:vista;
+  });
   const vals=granjasOrden.map(g=>stats[g]?stats[g][ind.key]:0);
   return {labelsOrd, vals};
 }
