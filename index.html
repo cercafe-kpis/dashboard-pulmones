@@ -1025,7 +1025,7 @@ function dibujarMensual(){
 
   if(!meses.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
 
-  const PAD={t:24,r:60,b:36,l:45};
+  const PAD={t:30,r:60,b:36,l:45};
   const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
   const maxV=Math.max(...vals,0.5);
   const barW=Math.min(36,cW/meses.length*0.6);
@@ -1062,8 +1062,8 @@ function dibujarMensual(){
     ctx.fill();
     ctx.fillStyle='#1a1814';ctx.font='bold 11px monospace';ctx.textAlign='center';
     ctx.fillText(v.toFixed(2),x+barW/2,y-3);
-    ctx.fillStyle='#9e878c';ctx.font='9px monospace';
-    ctx.fillText('n='+porMes[m].tce,x+barW/2,y-15);
+    ctx.fillStyle='#9e878c';ctx.font='bold 11px monospace';
+    ctx.fillText('n='+porMes[m].tce,x+barW/2,y-18);
     // Mes abreviado
     const [yr2,mo]=m.split('-');
     const nombres=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -1495,7 +1495,7 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
 
   if(!labels.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Seleccione al menos una granja',W/2,H/2);return;}
 
-  const PAD={t:32,r:16,b:LBL_H,l:52};
+  const PAD={t:38,r:16,b:LBL_H,l:52};
   const cW=W-PAD.l-PAD.r, cH=BAR_ZONE-PAD.t;
   const maxV=Math.max(...vals,0.001)*1.15;
   const gap=cW/n;
@@ -1536,8 +1536,8 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
     ctx.fillStyle='#1a1814';ctx.font='bold 12px monospace';ctx.textAlign='center';
     ctx.fillText(fmt(vals[i]),x+barW/2,y-4);
     if(ns&&ns[i]!==undefined){
-      ctx.fillStyle='#9e878c';ctx.font='9px monospace';
-      ctx.fillText('n='+ns[i],x+barW/2,y-17);
+      ctx.fillStyle='#9e878c';ctx.font='bold 12px monospace';
+      ctx.fillText('n='+ns[i],x+barW/2,y-20);
     }
 
     ctx.save();
