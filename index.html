@@ -363,9 +363,7 @@ const CONFIG={
       <div id="comp-charts" class="comp-charts-stack"></div>
 
       <div class="sec">Distribución de severidad (red)</div>
-      <div class="chart-card" style="margin-bottom:1rem;">
-        <canvas id="ch-sev" height="180"></canvas>
-      </div>
+      <div id="comp-donas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem;margin-bottom:1rem;"></div>
 
       <div class="sec" style="display:flex;align-items:center;justify-content:space-between;">
         <span>Resultados por tabla</span>
@@ -807,10 +805,31 @@ function dibujarGraficas(){
 }
 
 function dibujarComparativo(){
-  const compData=getCompFilteredData();
-  dibujarDona(compData);
+  const granjasSel=[...document.querySelectorAll('#comp-granjas-list input[type=checkbox]:checked')].map(i=>i.value);
+  const compData=getCompFilteredData().filter(d=>granjasSel.includes(d.granja_nombre));
+  dibujarDonasPorGranja(compData, granjasSel);
   actualizarTablas(compData);
   renderComparativo();
+}
+
+function dibujarDonasPorGranja(data, granjasSel){
+  const cont=document.getElementById('comp-donas');
+  if(!cont)return;
+  if(!granjasSel.length){
+    cont.innerHTML='<div class="chart-card"><div style="text-align:center;color:var(--hint);padding:2rem;font-size:13px;">Seleccione al menos una granja</div></div>';
+    return;
+  }
+  cont.innerHTML=granjasSel.map(g=>{
+    const vista=GRANJA_VISTA[g.toUpperCase()]||g;
+    const id='ch-sev-'+g.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="chart-card"><div class="chart-title">${vista}</div><canvas id="${id}" height="180"></canvas></div>`;
+  }).join('');
+  granjasSel.forEach(g=>{
+    const id='ch-sev-'+g.replace(/[^a-zA-Z0-9]/g,'_');
+    const el=document.getElementById(id);
+    const dataG=data.filter(d=>d.granja_nombre===g);
+    if(el)dibujarDona(dataG, el);
+  });
 }
 
 function limpiarCanvas(id){
@@ -1376,7 +1395,9 @@ function descargarExcel(rows, filename, sheetName){
 function exportarExcelResultados(){
   // Exporta SIEMPRE los 15 indicadores completos, sin importar cuáles estén
   // seleccionados arriba en los chips de gráficos comparativos.
-  const compData=getCompFilteredData();
+  // Sí respeta las granjas marcadas en el filtro, igual que la tabla en pantalla.
+  const granjasSel=[...document.querySelectorAll('#comp-granjas-list input[type=checkbox]:checked')].map(i=>i.value);
+  const compData=getCompFilteredData().filter(d=>granjasSel.includes(d.granja_nombre));
   const enGranja=document.getElementById('tab-g').classList.contains('active');
   const fecha=new Date().toLocaleDateString('es-CO');
 
@@ -1984,7 +2005,10 @@ function imprimirPDFComparativo(){
     return {lbl:ind.lbl, src};
   });
 
-  const imgSev=generarDonaTemp(compData, 420);
+  const imgsSevPorGranja=granjasSel.map(g=>{
+    const dataG=compData.filter(d=>d.granja_nombre===g);
+    return {lbl:GRANJA_VISTA[g.toUpperCase()]||g, src:generarDonaTemp(dataG, 420)};
+  });
 
   const html=`
   <div style="font-family:-apple-system,sans-serif;color:#1a1814;font-size:10pt;max-width:100%;">
@@ -2011,8 +2035,12 @@ function imprimirPDFComparativo(){
 
     <!-- SEVERIDAD -->
     <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b6558;border-bottom:1px solid #e8e3da;padding-bottom:3px;margin-bottom:8px;page-break-inside:avoid;break-inside:avoid;">Distribución de severidad</div>
-    <div style="max-width:420px;margin-bottom:12px;page-break-inside:avoid;break-inside:avoid;">
-      <img src="${imgSev}" style="width:100%;display:block;border:1px solid #e8e3da;border-radius:4px;">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;">
+      ${imgsSevPorGranja.map(s=>`
+        <div style="page-break-inside:avoid;break-inside:avoid;">
+          <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">${s.lbl}</div>
+          <img src="${s.src}" style="width:100%;display:block;border:1px solid #e8e3da;border-radius:4px;">
+        </div>`).join('')}
     </div>
 
     <!-- PIE -->
