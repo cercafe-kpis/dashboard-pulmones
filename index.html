@@ -323,6 +323,7 @@ const CONFIG={
         <div class="chart-card full">
           <div class="chart-title">IDN promedio mensual</div>
           <canvas id="ch-mensual" height="180"></canvas>
+          <div style="font-size:10px;color:var(--hint);margin-top:2px;">n = pulmones inspeccionados</div>
         </div>
       </div>
 
@@ -1024,7 +1025,7 @@ function dibujarMensual(){
 
   if(!meses.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Sin datos',W/2,H/2);return;}
 
-  const PAD={t:14,r:60,b:36,l:45};
+  const PAD={t:24,r:60,b:36,l:45};
   const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
   const maxV=Math.max(...vals,0.5);
   const barW=Math.min(36,cW/meses.length*0.6);
@@ -1061,13 +1062,13 @@ function dibujarMensual(){
     ctx.fill();
     ctx.fillStyle='#1a1814';ctx.font='bold 11px monospace';ctx.textAlign='center';
     ctx.fillText(v.toFixed(2),x+barW/2,y-3);
-    // Mes abreviado + cantidad de cerdos evaluados ese mes
+    ctx.fillStyle='#9e878c';ctx.font='9px monospace';
+    ctx.fillText('n='+porMes[m].tce,x+barW/2,y-15);
+    // Mes abreviado
     const [yr2,mo]=m.split('-');
     const nombres=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     ctx.fillStyle='#1a1814';ctx.font='11px sans-serif';
-    const mostrarConteo=meses.length<=15;
-    const etiqueta=nombres[parseInt(mo)]+" '"+yr2.substring(2)+(mostrarConteo?` (${porMes[m].tce})`:'');
-    ctx.fillText(etiqueta,x+barW/2,H-PAD.b+12);
+    ctx.fillText(nombres[parseInt(mo)]+" '"+yr2.substring(2),x+barW/2,H-PAD.b+12);
   });
 }
 
@@ -1483,7 +1484,7 @@ function colorEscalaIdn(v){
   return '#9e2a2a';                // Severo >0.9
 }
 
-function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, refLbl, widthOverride, colorFn){
+function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, refLbl, widthOverride, colorFn, ns){
   const n=labels.length||1;
   const LBL_H=76, BAR_ZONE=220, H=BAR_ZONE+LBL_H;
   const baseW=widthOverride||Math.max(canvasEl.parentElement.clientWidth-32, 300);
@@ -1494,7 +1495,7 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
 
   if(!labels.length){ctx.fillStyle='#9e878c';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('Seleccione al menos una granja',W/2,H/2);return;}
 
-  const PAD={t:22,r:16,b:LBL_H,l:52};
+  const PAD={t:32,r:16,b:LBL_H,l:52};
   const cW=W-PAD.l-PAD.r, cH=BAR_ZONE-PAD.t;
   const maxV=Math.max(...vals,0.001)*1.15;
   const gap=cW/n;
@@ -1534,6 +1535,10 @@ function drawBarChartComparativo(canvasEl, labels, vals, color, fmt, refVal, ref
 
     ctx.fillStyle='#1a1814';ctx.font='bold 12px monospace';ctx.textAlign='center';
     ctx.fillText(fmt(vals[i]),x+barW/2,y-4);
+    if(ns&&ns[i]!==undefined){
+      ctx.fillStyle='#9e878c';ctx.font='9px monospace';
+      ctx.fillText('n='+ns[i],x+barW/2,y-17);
+    }
 
     ctx.save();
     ctx.translate(x+barW/2, PAD.t+cH+8);
@@ -1559,16 +1564,10 @@ function ordenarIndicador(ind, granjasSel, stats){
   let granjasOrden=[...granjasSel];
   if(_ordenComparativo==='asc') granjasOrden.sort((a,b)=>(stats[a]?stats[a][ind.key]:0)-(stats[b]?stats[b][ind.key]:0));
   else if(_ordenComparativo==='desc') granjasOrden.sort((a,b)=>(stats[b]?stats[b][ind.key]:0)-(stats[a]?stats[a][ind.key]:0));
-  // Se agrega la cantidad de cerdos evaluados junto al nombre de la granja, ej: "Guaymaral (16)".
-  // Si hay muchas granjas seleccionadas, se omite para que las etiquetas no se vean apretadas.
-  const mostrarConteo=granjasOrden.length<=15;
-  const labelsOrd=granjasOrden.map(g=>{
-    const vista=GRANJA_VISTA[g.toUpperCase()]||g;
-    const n=stats[g]?stats[g].n:0;
-    return mostrarConteo?`${vista} (${n})`:vista;
-  });
+  const labelsOrd=granjasOrden.map(g=>GRANJA_VISTA[g.toUpperCase()]||g);
   const vals=granjasOrden.map(g=>stats[g]?stats[g][ind.key]:0);
-  return {labelsOrd, vals};
+  const ns=granjasOrden.map(g=>stats[g]?stats[g].n:0);
+  return {labelsOrd, vals, ns};
 }
 
 function getRefValIndicador(ind){
@@ -1622,14 +1621,15 @@ function renderComparativo(){
       <div class="chart-title">${ind.lbl}</div>
       ${ind.key==='idn'?`<div style="font-size:11px;color:var(--hint);margin:-6px 0 10px;">Escala IDN: <span style="color:#4a6491;font-weight:500">Sin lesión = 0</span> · <span style="color:#257a65;font-weight:500">Leve &lt;0.56</span> · <span style="color:#b07a00;font-weight:500">Moderado 0.56–0.89</span> · <span style="color:#9e2a2a;font-weight:500">Severo &gt;0.9</span></div>`:''}
       <canvas id="ch-comp-${ind.key}"></canvas>
+      <div style="font-size:10px;color:var(--hint);margin-top:2px;">n = pulmones inspeccionados</div>
     </div>`).join('');
 
   indicadoresSel.forEach(ind=>{
-    const {labelsOrd, vals}=ordenarIndicador(ind, granjasSel, stats);
+    const {labelsOrd, vals, ns}=ordenarIndicador(ind, granjasSel, stats);
     const canvasEl=document.getElementById('ch-comp-'+ind.key);
     const refVal=getRefValIndicador(ind);
     const colorFn=ind.key==='idn'?colorEscalaIdn:null;
-    if(canvasEl)drawBarChartComparativo(canvasEl, labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', undefined, colorFn);
+    if(canvasEl)drawBarChartComparativo(canvasEl, labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', undefined, colorFn, ns);
   });
 }
 
@@ -1819,11 +1819,11 @@ function generarDonaTemp(data, width){
   return url;
 }
 
-function generarBarraTemp(labels, vals, color, fmt, refVal, refLbl, width, colorFn){
+function generarBarraTemp(labels, vals, color, fmt, refVal, refLbl, width, colorFn, ns){
   // Genera un gráfico de barras comparativo con un ancho fijo (independiente del layout en pantalla)
   // para que todas las imágenes del PDF tengan siempre la misma proporción, sin necesidad de adjuntarlo al DOM
   const canvas=document.createElement('canvas');
-  drawBarChartComparativo(canvas, labels, vals, color, fmt, refVal, refLbl, width, colorFn);
+  drawBarChartComparativo(canvas, labels, vals, color, fmt, refVal, refLbl, width, colorFn, ns);
   return canvas.toDataURL('image/png');
 }
 
@@ -1999,10 +1999,10 @@ function imprimirPDFComparativo(){
   // Todas las imágenes se generan con el mismo ancho fijo, así todas guardan la misma proporción
   // sin importar el tamaño que tuvieran en pantalla al momento de exportar
   const chartsImgs=indicadoresSel.map(ind=>{
-    const {labelsOrd, vals}=ordenarIndicador(ind, granjasSel, stats);
+    const {labelsOrd, vals, ns}=ordenarIndicador(ind, granjasSel, stats);
     const refVal=getRefValIndicador(ind);
     const colorFn=ind.key==='idn'?colorEscalaIdn:null;
-    const src=generarBarraTemp(labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', anchoImg, colorFn);
+    const src=generarBarraTemp(labelsOrd, vals, ind.color, ind.fmt, refVal, 'Cercafe', anchoImg, colorFn, ns);
     return {lbl:ind.lbl, src};
   });
 
@@ -2031,6 +2031,7 @@ function imprimirPDFComparativo(){
         <div style="page-break-inside:avoid;break-inside:avoid;">
           <div style="font-size:8pt;font-weight:600;color:#6b6558;margin-bottom:4px;">${c.lbl}</div>
           <img src="${c.src}" style="width:100%;display:block;border:1px solid #e8e3da;border-radius:4px;">
+          <div style="font-size:6.5pt;color:#9e878c;margin-top:2px;">n = pulmones inspeccionados</div>
         </div>`).join('')}
     </div>
 
