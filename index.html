@@ -690,19 +690,15 @@ function limpiarFiltros(){
 }
 
 function calcIDN(data){
-  // IDN real = CT/TCE
-  // CT = suma de (categoria × 1) por cada cerdo
-  // TCE = total de cerdos inspeccionados en el lote
-  // Se calcula por lote (consecutivo) y se promedia entre lotes
-  const lotes={};
+  // IDN = CT/TCE calculado sobre el TOTAL (suma de todas las categorías / total de cerdos inspeccionados)
+  // No se promedia por lote — se usa la suma completa, para que el resultado sea el mismo
+  // sin importar cuántos lotes distintos entren en el filtro aplicado.
+  let ct=0, tce=0;
   data.forEach(d=>{
-    const key=(d.granja_nombre||'')+'_'+(d.consecutivo||'');
-    if(!lotes[key])lotes[key]={ct:0,tce:0};
-    lotes[key].ct+=parseInt(d.categoria)||0;
-    lotes[key].tce++;  // TCE = total cerdos del lote
+    ct+=parseInt(d.categoria)||0;
+    tce++;
   });
-  const idns=Object.values(lotes).map(l=>l.tce>0?l.ct/l.tce:0);
-  return idns.length>0?idns.reduce((s,v)=>s+v,0)/idns.length:0;
+  return tce>0?ct/tce:0;
 }
 
 function actualizarKPIs(){
@@ -1004,29 +1000,19 @@ function dibujarLinea(){
 }
 
 function dibujarMensual(){
-  // IDN por mes: agrupar lotes por YYYY-MM, calcular IDN de cada lote, promediar
-  const lotesMap={};
-  filteredData.forEach(d=>{
-    const key=(d.granja_nombre||'')+'_'+(d.consecutivo||'');
-    if(!lotesMap[key]){
-      const f=(d.fecha_inspeccion||'').split('T')[0];
-      lotesMap[key]={ct:0,tce:0,mes:f.substring(0,7)};
-    }
-    lotesMap[key].ct+=parseInt(d.categoria)||0;
-    lotesMap[key].tce++;
-  });
-
+  // IDN por mes: se suman TODAS las categorías de TODOS los cerdos de ese mes y se
+  // dividen entre el total de cerdos inspeccionados ese mes (sin promediar por lote)
   const porMes={};
-  Object.values(lotesMap).forEach(l=>{
-    if(!l.mes)return;
-    const idn=l.tce>0?l.ct/l.tce:0;
-    if(!porMes[l.mes]){porMes[l.mes]={sum:0,cnt:0};}
-    porMes[l.mes].sum+=idn;
-    porMes[l.mes].cnt++;
+  filteredData.forEach(d=>{
+    const mes=(d.fecha_inspeccion||'').split('T')[0].substring(0,7);
+    if(!mes)return;
+    if(!porMes[mes])porMes[mes]={ct:0,tce:0};
+    porMes[mes].ct+=parseInt(d.categoria)||0;
+    porMes[mes].tce++;
   });
 
   const meses=Object.keys(porMes).sort();
-  const vals=meses.map(m=>porMes[m].sum/porMes[m].cnt);
+  const vals=meses.map(m=>porMes[m].tce>0?porMes[m].ct/porMes[m].tce:0);
 
   const el=document.getElementById('ch-mensual');
   if(!el)return;
@@ -1083,19 +1069,16 @@ function dibujarMensual(){
 
 function actualizarTablas(data){
   data=data||filteredData;
-  // Por granja — IDN correcto: promedio de CT/TCE por lote
+  // Por granja — IDN = suma de todas las categorías (CT) de la granja / total de cerdos inspeccionados (TCE)
   const porG={};
   data.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
-    if(!porG[g])porG[g]={lotes:{},n:0,neum:0,pleur:0,sumGdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0}};
+    if(!porG[g])porG[g]={n:0,sumCat:0,neum:0,pleur:0,sumGdp:0,sevs:{Sin:0,Leve:0,Moderada:0,Severa:0},lotesSet:new Set()};
     const pg=porG[g];
     pg.n++;
-    // Acumular CT/TCE por lote (para IDN correcto)
-    const lk=d.consecutivo||'_';
-    if(!pg.lotes[lk])pg.lotes[lk]={ct:0,tce:0};
-    pg.lotes[lk].ct+=parseInt(d.categoria)||0;
-    pg.lotes[lk].tce++;
+    pg.lotesSet.add(d.consecutivo||'_');
     const cat=parseInt(d.categoria)||0;
+    pg.sumCat+=cat;
     if(cat>0&&(parseFloat(d.consolidacion_total)||0)>0)pg.neum++;
     if(d.pleuritis_leve===true||d.pleuritis_leve===1||d.pleuritis_leve==='true'||d.pleuritis_severa===true||d.pleuritis_severa===1||d.pleuritis_severa==='true')pg.pleur++;
     pg.sumGdp+=parseFloat(d.perdida_gdp_kg)||0;
@@ -1108,15 +1091,14 @@ function actualizarTablas(data){
   if(!Object.keys(porG).length){tbG.innerHTML='<tr><td colspan="8" class="no-data">Sin datos</td></tr>';return;}
   Object.keys(porG).sort().forEach(g=>{
     const pg=porG[g];
-    // IDN = promedio de (CT/TCE) de cada lote de la granja
-    const lotesArr=Object.values(pg.lotes);
-    const idnVal=lotesArr.length>0?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
+    // IDN = CT total (suma de categorías) / TCE total (total de cerdos), sobre el total de la granja completa
+    const idnVal=pg.n>0?pg.sumCat/pg.n:0;
     const idn=idnVal.toFixed(2);
     const sevP=Object.entries(pg.sevs).sort((a,b)=>b[1]-a[1])[0][0];
     const sc={Sin:'sev-0',Leve:'sev-1',Moderada:'sev-2',Severa:'sev-3'}[sevP];
     tbG.innerHTML+=`<tr>
       <td><strong>${GRANJA_VISTA[g.toUpperCase()]||g}</strong></td>
-      <td class="td-num">${Object.keys(pg.lotes).length}</td>
+      <td class="td-num">${pg.lotesSet.size}</td>
       <td class="td-num">${pg.n}</td>
       <td class="td-num">${idn}</td>
       <td class="td-num">${(pg.neum/pg.n*100).toFixed(1)}%</td>
@@ -1241,15 +1223,13 @@ function computeStatsByFarm(data){
   const porG={};
   data.forEach(d=>{
     const g=d.granja_nombre||'Sin granja';
-    if(!porG[g])porG[g]={lotes:{},n:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0,
-      nint:0,absc:0,nodu:0,peri:0,manc:0,agua:0,sang:0,pete:0,ambos:0};
+    if(!porG[g])porG[g]={n:0,sumCat:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0,
+      nint:0,absc:0,nodu:0,peri:0,manc:0,agua:0,sang:0,pete:0,ambos:0,lotesSet:new Set()};
     const pg=porG[g];
     pg.n++;
-    const lk=d.consecutivo||'_';
-    if(!pg.lotes[lk])pg.lotes[lk]={ct:0,tce:0};
-    pg.lotes[lk].ct+=parseInt(d.categoria)||0;
-    pg.lotes[lk].tce++;
+    pg.lotesSet.add(d.consecutivo||'_');
     const cat=parseInt(d.categoria)||0;
+    pg.sumCat+=cat;
     const consol=parseFloat(d.consolidacion_total)||0;
     pg.sumConsol+=consol;
     if(cat>0&&consol>0)pg.neum++;
@@ -1286,9 +1266,8 @@ function computeStatsByFarm(data){
   const out={};
   Object.keys(porG).forEach(g=>{
     const pg=porG[g];
-    const lotesArr=Object.values(pg.lotes);
-    const idn=lotesArr.length?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
     const n=pg.n||1;
+    const idn=pg.sumCat/n;
     out[g]={
       idn,
       consol: pg.sumConsol/n,
@@ -1320,16 +1299,13 @@ function computeStatsByLote(data){
     const key=g+'|||'+consec;
     if(!porL[key]){
       const f=(d.fecha_inspeccion||'').split('T')[0];
-      porL[key]={granja:g,consec,fecha:f,lotes:{},n:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0,
+      porL[key]={granja:g,consec,fecha:f,n:0,sumCat:0,neum:0,pleur:0,poliser:0,sumGdp:0,sumConsol:0,
         nint:0,absc:0,nodu:0,peri:0,manc:0,agua:0,sang:0,pete:0,ambos:0};
     }
     const pl=porL[key];
     pl.n++;
-    const lk=d.consecutivo||'_';
-    if(!pl.lotes[lk])pl.lotes[lk]={ct:0,tce:0};
-    pl.lotes[lk].ct+=parseInt(d.categoria)||0;
-    pl.lotes[lk].tce++;
     const cat=parseInt(d.categoria)||0;
+    pl.sumCat+=cat;
     const consol=parseFloat(d.consolidacion_total)||0;
     pl.sumConsol+=consol;
     if(cat>0&&consol>0)pl.neum++;
@@ -1364,9 +1340,8 @@ function computeStatsByLote(data){
   const out={};
   Object.keys(porL).forEach(key=>{
     const pl=porL[key];
-    const lotesArr=Object.values(pl.lotes);
-    const idn=lotesArr.length?lotesArr.reduce((s,l)=>s+(l.tce>0?l.ct/l.tce:0),0)/lotesArr.length:0;
     const n=pl.n||1;
+    const idn=pl.sumCat/n;
     out[key]={
       granja:pl.granja, consec:pl.consec, fecha:pl.fecha,
       idn, consol:pl.sumConsol/n, neum:pl.neum/n*100, pleur:pl.pleur/n*100,
