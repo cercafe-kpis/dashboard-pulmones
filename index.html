@@ -1,3 +1,26 @@
+<!--
+  ============================================================================
+  SCORE PULMONAR — DASHBOARD DE ANÁLISIS
+  ============================================================================
+  Aplicación de una sola página (sin build, sin dependencias de servidor propio)
+  para visualizar y analizar los resultados de inspección pulmonar porcina
+  (método Madec) capturados con la app "Inspección Pulmonar" y almacenados en
+  una lista de SharePoint.
+
+  Ver README.md para documentación completa (arquitectura, cálculos, despliegue).
+
+  RESUMEN RÁPIDO:
+  - Autenticación: Microsoft Entra ID (MSAL.js) contra un tenant de Microsoft 365.
+  - Datos: se leen directamente de una lista de SharePoint vía Microsoft Graph API
+    (no hay backend propio; todo corre en el navegador del usuario).
+  - CONFIG (abajo, dentro del <script>): CLIENT_ID / TENANT_ID / SP_SITE_URL / LIST_NAME.
+  - Dos pestañas principales:
+      1) "Análisis por granja"        → KPIs y gráficas de una granja/lote a la vez.
+      2) "Comparativo entre granjas"  → gráficas y tablas comparando varias granjas.
+  - Exportación a PDF (impresión del navegador) y a Excel (librería SheetJS/xlsx).
+  - Control de acceso por asociado vía parámetro ?site= en la URL (ver SITE_ASOCIADO).
+  ============================================================================
+-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1819,6 +1842,13 @@ function generarBarraTemp(labels, vals, color, fmt, refVal, refLbl, width, color
   return canvas.toDataURL('image/png');
 }
 
+// NOTA IMPORTANTE PARA MANTENIMIENTO:
+// Todo el layout de las plantillas de impresión (imprimirPDF / imprimirPDFComparativo)
+// usa `display:grid` con columnas fijas, NUNCA `display:flex` + flex-wrap.
+// Chrome tiene un bug conocido: los contenedores flex con flex-wrap se rompen al
+// paginar (una tarjeta puede estirarse para llenar toda una página en blanco).
+// CSS Grid con grid-template-columns SÍ pagina correctamente. Si se necesita un
+// layout nuevo para el PDF, usar grid, no flex.
 function imprimirPDF(){
   cerrarPDF();
   if(_pdfContext==='comp'){ imprimirPDFComparativo(); return; }
