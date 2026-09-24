@@ -683,6 +683,22 @@ function poblarConsec(data){
   cs.forEach(c=>sel.innerHTML+=`<option value="${c}">${c}</option>`);
 }
 
+/**
+ * Devuelve solo la parte de fecha (YYYY-MM-DD) de un valor fecha_inspeccion
+ * proveniente de SharePoint/Graph, que normalmente llega con hora y zona
+ * horaria (ej. "2026-09-22T00:00:00Z"). Los filtros "Desde"/"Hasta" vienen
+ * de un <input type="date"> y son solo "YYYY-MM-DD" (10 caracteres): comparar
+ * el string completo (con la "T...") contra esos 10 caracteres con < / >
+ * es incorrecto, porque "2026-09-22T00:00:00Z" > "2026-09-22" en orden de
+ * texto aunque sea EXACTAMENTE el mismo día — eso hacía que el filtro
+ * "Hasta" excluyera de golpe todos los registros del día elegido.
+ * @param {string} v
+ * @returns {string}
+ */
+function soloFecha(v){
+  return v?String(v).split('T')[0]:'';
+}
+
 function aplicarFiltros(){
   const asoc=userAsociado||document.getElementById('f-asociado').value;
   const g=document.getElementById('f-granja').value;
@@ -693,8 +709,8 @@ function aplicarFiltros(){
     if(asoc&&GRANJA_ASOCIADO[(r.granja_nombre||"").toUpperCase()]!==asoc)return false;
     if(g&&r.granja_nombre!==g)return false;
     if(c&&r.consecutivo!==c)return false;
-    if(d&&r.fecha_inspeccion&&r.fecha_inspeccion<d)return false;
-    if(h&&r.fecha_inspeccion&&r.fecha_inspeccion>h)return false;
+    if(d&&r.fecha_inspeccion&&soloFecha(r.fecha_inspeccion)<d)return false;
+    if(h&&r.fecha_inspeccion&&soloFecha(r.fecha_inspeccion)>h)return false;
     return true;
   });
   if(g)poblarConsec(filteredData);
@@ -1238,8 +1254,8 @@ function getCompFilteredData(){
   const h=document.getElementById('f-hasta').value;
   return allData.filter(r=>{
     if(asoc&&GRANJA_ASOCIADO[(r.granja_nombre||"").toUpperCase()]!==asoc)return false;
-    if(d&&r.fecha_inspeccion&&r.fecha_inspeccion<d)return false;
-    if(h&&r.fecha_inspeccion&&r.fecha_inspeccion>h)return false;
+    if(d&&r.fecha_inspeccion&&soloFecha(r.fecha_inspeccion)<d)return false;
+    if(h&&r.fecha_inspeccion&&soloFecha(r.fecha_inspeccion)>h)return false;
     return true;
   });
 }
